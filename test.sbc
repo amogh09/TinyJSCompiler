@@ -2,29 +2,11 @@ funcLength 1
 callentry 0
 sendentry 0
 numberOfLocals 0
-numberOfInstruction 25
+numberOfInstruction 7
 getglobalobj 1
-setfl 21
-fixnum 2 10
+setfl 7
+specconst 2 null
 string 3 "a"
 setglobal 3 2
-fixnum 2 30
-string 4 "b"
-setglobal 4 2
-string 9 "a"
-getglobal 7 9
-string 10 "b"
-getglobal 8 10
-mul 5 7 8
-string 15 "b"
-getglobal 13 15
-string 16 "a"
-getglobal 14 16
-sub 11 13 14
-fixnum 12 2
-mul 6 11 12
-add 2 5 6
-string 17 "c"
-setglobal 17 2
 seta 2
 ret

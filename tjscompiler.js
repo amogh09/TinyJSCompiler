@@ -36,16 +36,6 @@ Const = {
   NULL : "null"
 }
 
-const MAX_SAFE_INTEGER = 9007199254740991;
-const MIN_SAFE_INTEGER = -9007199254740991;
-const MAX_VALUE = new Number(1.79E+308);
-const MIN_VALUE = new Number(5e-324);
-
-//Register: stored as integers
-// function Register(r){
-//   const reg = r;  //register number
-// }
-
 //Nemonics
 Nemonic = {
   NUMBER : "number",
@@ -67,7 +57,9 @@ Nemonic = {
   BITOR : "bitor",
   LEFTSHIFT : "leftshift",
   RIGHTSHIFT : "rightshift",
-  UNSIGNEDRIGHTSHIFT : "unsignedrightshift"
+  UNSIGNEDRIGHTSHIFT : "unsignedrightshift",
+  SPECCONST : "specconst",
+  CONST : "const"
 }
 
 //Location
@@ -137,6 +129,10 @@ function trireg(r1, r2, r3){
 }
 function num(n){
   this.n1 = n;
+}
+function constType(dst, cons){
+  this.dst = dst;
+  this.cons = cons;
 }
 
 var arithNemonic = function(operator){
@@ -259,6 +255,11 @@ var setBytecodeIVal = function(nemonic, flag, dst, intVal){
   bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, i);
 }
 
+var setBytecodeCons = function(nemonic, flag, dst, consVal){
+  var c = new constType(dst, consVal);
+  bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, c);
+}
+
 var setBytecodeFl = function(){
   for(var i = 0; i < currentCodeNum; i++){
     if(bytecode[currentCode][i].flag === 2){
@@ -364,6 +365,11 @@ var printBytecode = function(bytecode, num, writeStream){
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.n1 + "\n");
           break;
 
+        case Nemonic.CONST:
+        case Nemonic.SPECCONST:
+          writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.dst + " " + bytecode[i][j].bcType.cons + "\n");
+          break;
+
         default:
           throw new Error("Nemonic: '" + bytecode[i][j].nemonic + "' NOT IMPLEMENTED YET." + "\n");
       }
@@ -437,6 +443,12 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       break;
 
     case "Literal":
+      //TODO: ThisExpression
+      if(root.value == null){
+        setBytecodeCons(Nemonic.SPECCONST, 0, dst, Const.NULL);
+        break;
+      }
+
       switch (typeof root.value) {
         case "number":
           var val = root.value;
@@ -444,6 +456,13 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
             setBytecodeIVal(Nemonic.FIXNUM, 0, dst, val);
           } else{
             setBytecodeDVal(Nemonic.NUMBER, 0, dst, val);
+          }
+          break;
+        case "boolean":
+          if(root.value){
+            setBytecodeCons(Nemonic.SPECCONST, 0, dst, Const.TRUE);
+          } else {
+            setBytecodeCons(Nemonic.SPECCONST, 0, dst, Const.FALSE);
           }
           break;
         default:
