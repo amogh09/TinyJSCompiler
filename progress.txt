@@ -1,0 +1,7 @@
+Feature List
+
+*Added*
+-------------------------------------------
+Data types
+-Number
+-Fixnum 

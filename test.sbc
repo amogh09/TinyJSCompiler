@@ -1,0 +1,15 @@
+funcLength 1
+callentry 0
+sendentry 0
+numberOfLocals 0
+numberOfInstruction 10
+getglobalobj 1
+setfl 8
+fixnum 2 2
+string 3 "a"
+setglobal 3 2
+number 2 3.3
+string 4 "b"
+setglobal 4 2
+seta 2
+ret
