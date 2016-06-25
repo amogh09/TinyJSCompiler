@@ -57,7 +57,17 @@ Nemonic = {
   GETGLOBAL : "getglobal",
   SETA : "seta",
   GETA : "geta",
-  RET : "ret"
+  RET : "ret",
+  ADD : "add",
+  SUB : "sub",
+  MUL : "mul",
+  DIV : "div",
+  MOD : "mod",
+  BITAND : "bitand",
+  BITOR : "bitor",
+  LEFTSHIFT : "leftshift",
+  RIGHTSHIFT : "rightshift",
+  UNSIGNEDRIGHTSHIFT : "unsignedrightshift"
 }
 
 //Location
@@ -120,8 +130,40 @@ function bireg(r1, r2){
   this.r1 = r1;
   this.r2 = r2;
 }
+function trireg(r1, r2, r3){
+  this.r1 = r1;
+  this.r2 = r2;
+  this.r3 = r3;
+}
 function num(n){
   this.n1 = n;
+}
+
+var arithNemonic = function(operator){
+  switch (operator) {
+    case "+":
+      return Nemonic.ADD;
+    case "-":
+      return Nemonic.SUB;
+    case "*":
+      return Nemonic.MUL;
+    case "/":
+      return Nemonic.DIV;
+    case "%":
+      return Nemonic.MOD;
+    case "&":
+      return Nemonic.BITAND;
+    case "|":
+      return Nemonic.BITOR;
+    case "<<":
+      return Nemonic.LEFTSHIFT;
+    case ">>":
+      return Nemonic.RIGHTSHIFT;
+    case ">>>":
+      return Nemonic.UNSIGNEDRIGHTSHIFT;
+    default:
+      return "UNKNOWN";
+  }
 }
 
 const FL_MAX = 1500;
@@ -187,6 +229,16 @@ var setBytecodeUniReg = function(nemonic, flag, r1){
   bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, u);
 }
 
+var setBytecodeBiReg = function(nemonic, flag, r1, r2){
+  var bi = new bireg(r1, r2);
+  bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, bi);
+}
+
+var setBytecodeTriReg = function(nemonic, flag, r1, r2, r3){
+  var tri = new trireg(r1, r2, r3);
+  bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, tri);
+}
+
 var setBytecodeNum = function(nemonic, flag, n1){
   var n = new num(n1);
   bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, n);
@@ -195,11 +247,6 @@ var setBytecodeNum = function(nemonic, flag, n1){
 var setBytecodeString = function(nemonic, flag, dst, theString){
   var s = new str(dst, theString);
   bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, s);
-}
-
-var setBytecodeBiReg = function(nemonic, flag, r1, r2){
-  var bi = new bireg(r1, r2);
-  bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, bi);
 }
 
 var setBytecodeDVal = function(nemonic, flag, dst, doubleVal){
@@ -284,6 +331,20 @@ var printBytecode = function(bytecode, num, writeStream){
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.dst + ' "' + bytecode[i][j].bcType.theString + '"' + "\n");
           break;
 
+        //TODO: Add MOD, BITAND, BITOR, LEFTSHIFT, RIGHTSHIFT, UNSIGNEDRIGHTSHIFT
+        case Nemonic.ADD:
+        case Nemonic.SUB:
+        case Nemonic.MUL:
+        case Nemonic.DIV:
+        case Nemonic.MOD:
+        case Nemonic.BITAND:
+        case Nemonic.BITOR:
+        case Nemonic.LEFTSHIFT:
+        case Nemonic.RIGHTSHIFT:
+        case Nemonic.UNSIGNEDRIGHTSHIFT:
+          writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.r2 + " " + bytecode[i][j].bcType.r3 + "\n");
+          break;
+
         case Nemonic.GETGLOBAL:
         case Nemonic.SETGLOBAL:
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.r2 + "\n");
@@ -353,9 +414,16 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       }
       break;
 
+    case "BinaryExpression":
+      var t1 = searchUnusedReg();
+      var t2 = searchUnusedReg();
+      compileBytecode(root.left, rho, t1, 0, currentLevel);
+      compileBytecode(root.right, rho, t2, 0, currentLevel);
+      setBytecodeTriReg(arithNemonic(root.operator), 0, dst, t1, t2);
+      break;
+
     case "VariableDeclaration":
       for(var i = 0; i < root.declarations.length; i++){
-        // //console.log(root.declarationObject.assign = require('object-assign')s[i].type);
         compileBytecode(root.declarations[i], rho, dst, tailFlag, currentLevel);
       }
       break;
@@ -383,6 +451,37 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       }
       break;
 
+    case "Identifier":
+      var name = root.name;
+      var tn = searchUnusedReg();
+      var level, offset, index, location;
+      var obj = environmentLookup(rho, currentLevel, str);
+
+      level = obj.level;
+      offset = obj.offset;
+      index = obj.index;
+      location = obj.location;
+
+      switch (location) {
+        //TODO: Add LOC_LOCAL, LOC_REGISTER, and LOC_ARG
+        case Location.LOC_GLOBAL:
+          setBytecodeString(Nemonic.STRING, 0, tn, name);
+          setBytecodeBiReg(Nemonic.GETGLOBAL, 0, dst, tn);
+          break;
+        default:
+          throw new Error("Unexpected case in case 'Identifier'");
+      }
+      break;
+
+    case "ExpressionStatement":
+      compileBytecode(root.expression, rho, dst, 0, currentLevel);
+      break;
+    case "SequenceExpression":
+      for(var i=0; i<root.expressions.length; i++){
+        compileBytecode(root.expressions[i], rho, dst, 0, currentLevel);
+      }
+      break;
+
     default:
       throw new Error(root.type + ": NOT IMPLEMENTED YET.");
   }
@@ -401,7 +500,6 @@ var processSourceCode = function(){
   globalDst = searchUnusedReg();
 
   var ast = esprima.parse(sourceCode);
-  // //console.log(JSON.stringify(ast));
   compileBytecode(ast, rho, globalDst, 0, 0);
   setBytecodeUniReg(Nemonic.SETA, 0, globalDst);
   setBytecodeUniReg(Nemonic.RET, 0, 0);
@@ -413,9 +511,6 @@ var processSourceCode = function(){
   codeNum[0] = currentCodeNum;
 
   printBytecode(bytecode, currentFunction, writeStream);
-
-  // //console.log(ast["type"]);
-  // writeStream.write(JSON.stringify(ast) + "\n");
   writeStream.end();
 }
 

@@ -1,1 +1,2 @@
-var a = 2, b = 3.3;
+var a = 10, b = 30;
+var c  = a*b + (b - a) * 2;
