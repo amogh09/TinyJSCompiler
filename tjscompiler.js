@@ -636,6 +636,12 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       }
       break;
 
+    case "BlockStatement":
+      for(var i=0; i<root.body.length; i++){
+        compileBytecode(root.body[i], rho, dst, tailFlag, currentLevel);
+      }
+      break;
+
     default:
       throw new Error(root.type + ": NOT IMPLEMENTED YET.");
   }
