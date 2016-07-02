@@ -6,13 +6,19 @@ Data types
 -Number
 -Fixnum
 
+BinaryExpression
+- <, <=, >, >=
+- + - * /
+
 Constants
 -true
 -false
 -null
+-ThisExpression
+
 -------------------------------------------
 
-TODO 
+TODO
 -------------------------------------------
--ThisExpression
+- BlockStatement
 -------------------------------------------

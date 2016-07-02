@@ -59,7 +59,13 @@ Nemonic = {
   RIGHTSHIFT : "rightshift",
   UNSIGNEDRIGHTSHIFT : "unsignedrightshift",
   SPECCONST : "specconst",
-  CONST : "const"
+  CONST : "const",
+  MOVE  : "move",
+  JUMP  : "jump",
+  JUMPTRUE : "jumptrue",
+  JUMPFALSE : "jumpfalse",
+  LESSTHAN : "lessthan",
+  LESSTHANEQUAL : "lessthanequal"
 }
 
 //Location
@@ -115,6 +121,13 @@ function str(dst, theString){
   this.dst = dst;
   this.theString = theString;
 }
+function regnum(r1, n1){
+  this.r1 = r1;
+  this.n1 = n1;
+}
+function num(n1){
+  this.n1 = n1;
+}
 function unireg(r1){
   this.r1 = r1;
 }
@@ -157,6 +170,10 @@ var arithNemonic = function(operator){
       return Nemonic.RIGHTSHIFT;
     case ">>>":
       return Nemonic.UNSIGNEDRIGHTSHIFT;
+    case "<":
+      return Nemonic.LESSTHAN;
+    case "<=":
+      return Nemonic.LESSTHANEQUAL;
     default:
       return "UNKNOWN";
   }
@@ -167,6 +184,7 @@ const MAX_BYTECODE = 10000;
 const FL_TABLE_MAX = 201;
 var frameLinkTable = new Array(FL_TABLE_MAX);
 var maxFuncFl = 0;
+var currentLabel = 1;
 var currentTable = 0;
 var variableNum = new Array(FL_TABLE_MAX);
 var codeNum = new Array(FL_TABLE_MAX);
@@ -260,6 +278,16 @@ var setBytecodeCons = function(nemonic, flag, dst, consVal){
   bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, c);
 }
 
+var setBytecodeRegnum = function(nemonic, flag, r1, n1){
+  var rn = new regnum(r1, n1);
+  bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, rn);
+}
+
+var setBytecodeNum = function(nemonic, flag, n1){
+  var n = new num(n1);
+  bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, n);
+}
+
 var setBytecodeFl = function(){
   for(var i = 0; i < currentCodeNum; i++){
     if(bytecode[currentCode][i].flag === 2){
@@ -279,6 +307,23 @@ var setBytecodeFl = function(){
 var highestRegTouched = function(){
   for(var i = 0; touchRegTable[i] != 0; i++);
   return i-1;
+}
+
+var dispatchLabel = function(jumpLine, labelLine){
+  switch(bytecode[currentCode][jumpLine].nemonic){
+    case Nemonic.JUMPTRUE:
+    case Nemonic.JUMPFALSE:
+      bytecode[currentCode][jumpLine].flag = 0;
+      bytecode[currentCode][jumpLine].bcType.n1 = labelLine - jumpLine;
+      break;
+    //TODO: Add 'try'
+    case Nemonic.JUMP:
+      bytecode[currentCode][jumpLine].flag = 0;
+      bytecode[currentCode][jumpLine].bcType.n1 = labelLine - jumpLine;
+      break;
+    default:
+      throw new Error("Nemonic: '" + bytecode[currentCode][jumpLine].nemonic + "' NOT IMPLEMENTED YET." + "\n");
+  }
 }
 
 var calculateFrameLink = function(){
@@ -370,8 +415,39 @@ var printBytecode = function(bytecode, num, writeStream){
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.dst + " " + bytecode[i][j].bcType.cons + "\n");
           break;
 
+        case Nemonic.MOVE:
+          if(bytecode[i][j].flag == 2){
+            throw new Error("Nemonic: '" + bytecode[i][j].nemonic + "' with flag '2' NOT IMPLEMENTED YET." + "\n");
+          } else {
+            writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.r2 + "\n");
+          }
+          break;
+
+        case Nemonic.JUMPTRUE:
+        case Nemonic.JUMPFALSE:
+          if(bytecode[i][j].flag == 1){
+            writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " L" + bytecode[i][j].bcType.n1 + "\n");
+          } else {
+            writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.n1 + "\n");
+          }
+          break;
+
+        //TODO: case 'TRY'
+        case Nemonic.JUMP:
+          if(bytecode[i][j].flag == 1){
+            writeStream.write(bytecode[i][j].nemonic + " L" + bytecode[i][j].bcType.n1 + "\n");
+          } else {
+            writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.n1 + "\n");
+          }
+          break;
+
+        case Nemonic.LESSTHAN:
+        case Nemonic.LESSTHANEQUAL:
+          writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.r2 + " " + bytecode[i][j].bcType.r3 + "\n");
+          break;
+
         default:
-          throw new Error("Nemonic: '" + bytecode[i][j].nemonic + "' NOT IMPLEMENTED YET." + "\n");
+          throw new Error("Nemonic: '" + bytecode[i][j].nemonic + "' NOT IMPLEMENTED YET. i=" + "\n");
       }
     }
   }
@@ -406,8 +482,6 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
     return;
   }
 
-  //console.log("TOKEN TYPE: " + root.type);
-
   if(TOKENS.indexOf(root.type) == -1){
     //console.log("Unexpected token " + root.type + "\n");
     return;
@@ -425,7 +499,37 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       var t2 = searchUnusedReg();
       compileBytecode(root.left, rho, t1, 0, currentLevel);
       compileBytecode(root.right, rho, t2, 0, currentLevel);
-      setBytecodeTriReg(arithNemonic(root.operator), 0, dst, t1, t2);
+      switch (root.operator) {
+        case "<":
+        case "<=":
+          setBytecodeTriReg(root.operator=="<"?Nemonic.LESSTHAN:Nemonic.LESSTHANEQUAL,
+                            0, dst, t1, t2);
+          break;
+        case ">":
+        case ">=":
+          setBytecodeTriReg(root.operator==">"?Nemonic.LESSTHAN:Nemonic.LESSTHANEQUAL,
+                            0, dst, t2, t1);
+          break;
+        default:
+          setBytecodeTriReg(arithNemonic(root.operator), 0, dst, t1, t2);
+      }
+      break;
+
+    case "AssignmentExpression":
+      if(root.left.type == "Identifier"){
+        var name = root.left.name;
+        var t1 = searchUnusedReg();
+        var t2 = searchUnusedReg();
+        if(root.operator == "="){
+          compileBytecode(root.right, rho, dst, 0, currentLevel);
+          compileAssignment(name, rho, dst, currentLevel);
+        } else {
+          compileBytecode(root.left, rho, t1, 0, currentLevel);
+          compileBytecode(root.right, rho, t2, 0, currentLevel);
+          setBytecodeTriReg(arithNemonic(root.operator), 0, dst, t1, t2);
+          compileAssignment(name, rho, dst, currentLevel);
+        }
+      }
       break;
 
     case "VariableDeclaration":
@@ -443,7 +547,6 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       break;
 
     case "Literal":
-      //TODO: ThisExpression
       if(root.value == null){
         setBytecodeCons(Nemonic.SPECCONST, 0, dst, Const.NULL);
         break;
@@ -468,6 +571,10 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
         default:
           throw new Error(typeof root.value + ": NOT IMPLEMENTED YET.");
       }
+      break;
+
+    case "ThisExpression":
+      setBytecodeBiReg(Nemonic.MOVE, 0, dst, 1);
       break;
 
     case "Identifier":
@@ -498,6 +605,34 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
     case "SequenceExpression":
       for(var i=0; i<root.expressions.length; i++){
         compileBytecode(root.expressions[i], rho, dst, 0, currentLevel);
+      }
+      break;
+
+    case "IfStatement":
+      var elseExists = true;
+      if(root.alternate === null)
+        elseExists = false;
+      var t = searchUnusedReg();
+      var l1 = currentLabel++;
+      var l2 = currentLabel++;
+      var j1, j2;
+      compileBytecode(root.test, rho, t, 0, currentLevel);
+
+      j1 = currentCodeNum;
+      setBytecodeRegnum(Nemonic.JUMPFALSE, 1, t, l1);
+      compileBytecode(root.consequent, rho, dst, 0, currentLevel);
+      if(elseExists){
+        j2 = currentCodeNum;
+        setBytecodeNum(Nemonic.JUMP, 1, l2);
+      }
+      l1 = currentCodeNum;
+      if(elseExists){
+        compileBytecode(root.alternate, rho, dst, 0, currentLevel);
+        l2 = currentCodeNum;
+      }
+      dispatchLabel(j1, l1);
+      if(elseExists){
+        dispatchLabel(j2, l2);
       }
       break;
 
