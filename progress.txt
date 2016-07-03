@@ -17,10 +17,16 @@ Constants
 -ThisExpression
 
 BlockStatement
-
+WhileStatement
+DoWhileStatement
+ForStatement
 -------------------------------------------
 
 TODO
 -------------------------------------------
+- searchUseArguments()
+- searchFunctionDefinition()
 - += -=
+- preincrement postincrement
+- for loop closure part
 -------------------------------------------

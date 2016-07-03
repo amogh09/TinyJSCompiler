@@ -1,11 +1,12 @@
-var a = 10;
-var b = 20;
-
-if(a*2+2 > b){
-  c = 0
-  c = 1000
+var a = 9;
+var i = 1;
+var mul = 0;
+do{
+  mul = mul+a;
+  i = i+1;
+}while(i <= 5)
+mul = 0
+for(var b = 0; b < 7; b = b+1){
+  mul = mul + a
 }
-else{
-  c = 2000
-  d = 3000
-}
+mul

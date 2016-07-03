@@ -1,6 +1,16 @@
 ISSUES
 -----------------------------------------
-* var a = 2.2, b = 3.3; compiles wrongly.
+* Figure out the working of compile_function()
+* What is OPT_FRAME? Looks like existClosure will always be true as OPT_FRAME
+  exists nowhere.
+* When does useArguments return true?
+* for loop closure part, the 'else' part. See near line 1783.
+* won't we run out of registers? The searchUnusedReg() function.
+* Line: 680, why take parameter? Function is init_reg_tbl().
+-------------------------------------------
+
+ANSWERED
+-------------------------------------------
 * What does release_reg() do? Where is it defined?
   #Remove it
 * Where are variables 't1' and 't2' that appear on
@@ -16,5 +26,4 @@ ISSUES
   #for scope management
 * SETA, GETA nemonics.
   #return value of function.
-* Line: 680, why take parameter? Function is init_reg_tbl().
-  #Ask again.
+-------------------------------------------

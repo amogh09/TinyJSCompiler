@@ -1,8 +1,7 @@
 const fs = require('fs');
 const esprima = require('esprima');
 
-//Tokens
-const TOKENS = [
+var TOKENLIST = [
   "ArrayExpression", "ArrayPattern", "ArrowFunctionExpression",
   "AssignmentExpression", "AssignmentPattern", "BinaryExpression",
   "BlockStatement", "BreakStatement", "CallExpression",
@@ -27,6 +26,77 @@ const TOKENS = [
   "VariableDeclarator", "WhileStatement", "WithStatement",
   "YieldExpression"
 ];
+
+Tokens = {
+  PROGRAM : "Program",
+  ARRAYEXPRESSION : "ArrayExpression",
+  ARRAYPATTERN : "ArrayPattern",
+  ARROWFUNCTIONEXPRESSION : "ArrowFunctionExpression",
+  ASSIGNMENTEXPRESSION : "AssignmentExpression",
+  ASSIGNMENTPATTERN : "AssignmentPattern",
+  BINARYEXPRESSION : "BinaryExpression",
+  BLOCKSTATEMENT : "BlockStatement",
+  BREAKSTATEMENT : "BreakStatement",
+  CALLEXPRESSION : "CallExpression",
+  CATCHCLAUSE : "CatchClause",
+  CLASSBODY : "ClassBody",
+  CLASSDECLARATION : "ClassDeclaration",
+  CLASSEXPRESSION : "ClassExpression",
+  COMPUTEDMEMBEREXPRESSION : "ComputedMemberExpression",
+  CONDITIONALEXPRESSION : "ConditionalExpression",
+  CONTINUESTATEMENT : "ContinueStatement",
+  DEBUGGERSTATEMENT : "DebuggerStatement",
+  DIRECTIVE : "Directive",
+  DOWHILESTATEMENT : "DoWhileStatement",
+  EMPTYSTATEMENT : "EmptyStatement",
+  EXPORTALLDECLARATION : "ExportAllDeclaration",
+  EXPORTDEFAULTDECLARATION : "ExportDefaultDeclaration",
+  EXPORTNAMEDDECLARATION : "ExportNamedDeclaration",
+  EXPORTSPECIFIER : "ExportSpecifier",
+  EXPRESSIONSTATEMENT : "ExpressionStatement",
+  FORINSTATEMENT : "ForInStatement",
+  FOROFSTATEMENT : "ForOfStatement",
+  FORSTATEMENT : "ForStatement",
+  FUNCTIONDECLARATION : "FunctionDeclaration",
+  FUNCTIONEXPRESSION : "FunctionExpression",
+  IDENTIFIER : "Identifier",
+  IFSTATEMENT : "IfStatement",
+  IMPORTDECLARATION : "ImportDeclaration",
+  IMPORTDEFAULTSPECIFIER : "ImportDefaultSpecifier",
+  IMPORTNAMESPACESPECIFIER : "ImportNamespaceSpecifier",
+  IMPORTSPECIFIER : "ImportSpecifier",
+  LABELEDSTATEMENT : "LabeledStatement",
+  LITERAL : "Literal",
+  METAPROPERTY : "MetaProperty",
+  METHODDEFINITION : "MethodDefinition",
+  NEWEXPRESSION : "NewExpression",
+  OBJECTEXPRESSION : "ObjectExpression",
+  OBJECTPATTERN : "ObjectPattern",
+  PROGRAM : "Program",
+  PROPERTY : "Property",
+  REGEXLITERAL : "RegexLiteral",
+  RESTELEMENT : "RestElement",
+  RETURNSTATEMENT : "ReturnStatement",
+  SEQUENCEEXPRESSION : "SequenceExpression",
+  SPREADELEMENT : "SpreadElement",
+  STATICMEMBEREXPRESSION : "StaticMemberExpression",
+  SUPER : "Super",
+  SWITCHCASE : "SwitchCase",
+  SWITCHSTATEMENT : "SwitchStatement",
+  TAGGEDTEMPLATEEXPRESSION : "TaggedTemplateExpression",
+  TEMPLATEELEMENT : "TemplateElement",
+  TEMPLATELITERAL : "TemplateLiteral",
+  THISEXPRESSION : "ThisExpression",
+  THROWSTATEMENT : "ThrowStatement",
+  TRYSTATEMENT : "TryStatement",
+  UNARYEXPRESSION : "UnaryExpression",
+  UPDATEEXPRESSION : "UpdateExpression",
+  VARIABLEDECLARATION : "VariableDeclaration",
+  VARIABLEDECLARATOR : "VariableDeclarator",
+  WHILESTATEMENT : "WhileStatement",
+  WITHSTATEMENT : "WithStatement",
+  YIELDEXPRESSION : "YieldExpression"
+}
 
 //define constants
 Const = {
@@ -65,7 +135,8 @@ Nemonic = {
   JUMPTRUE : "jumptrue",
   JUMPFALSE : "jumpfalse",
   LESSTHAN : "lessthan",
-  LESSTHANEQUAL : "lessthanequal"
+  LESSTHANEQUAL : "lessthanequal",
+  NEWARGS : "newargs",
 }
 
 //Location
@@ -194,6 +265,7 @@ var touchRegTable = new Array(FL_MAX);
 var currentCodeNum = 0;
 var currentCode = 0;
 var bytecode = new Array(FL_TABLE_MAX);
+var functionTable = new Array(FL_TABLE_MAX);
 
 //main code begins
 var inputFileName;
@@ -217,9 +289,8 @@ var initVariableNumCodeNum = function(){
   }
 }
 
-var initRegTbl = function(){
+var initRegTbl = function(currentLevel){
   for(var i=0; i<FL_MAX; i++){
-    // releaseReg(currentTable, i);
     usedRegTable[i] = 0;
     touchRegTable[i] = 0;
   }
@@ -361,7 +432,6 @@ var printBytecode = function(bytecode, num, writeStream){
     writeStream.write("numberOfInstruction " + codeNum[i] + "\n");
 
     for(var j = 0; j < codeNum[i]; j++){
-      //console.log("j = " + j + ", bytecode[i][j]: " + bytecode[i][j].nemonic);
       if(bytecode[i][j].label != null && bytecode[i][j].label != 0){
         writeStream.write(bytecode[i][j].label + ":\n");
       }
@@ -464,7 +534,7 @@ var compileAssignment = function(str, rho, src, currentLevel){
 
   switch (location) {
     case Location.LOC_REGISTER:
-      //console.log("Location.LOC_REGISTER not implemented yet.");
+      throw new Error(Location.LOC_REGISTER + ": NOT IMPLEMENTED YET.");
       break;
     case Location.LOC_GLOBAL:
       //tn is a register
@@ -477,24 +547,80 @@ var compileAssignment = function(str, rho, src, currentLevel){
   }
 }
 
+function compileFunction(functionTable, index){
+  var rho = functionTable.rho;
+  currentCode = index;
+  currentCodeNum = 0;
+  maxFuncFl = 0;
+  var retu;
+  var existClosure, useArguments;
+  existClosure = functionTable.existClosure ||
+                  searchFunctionDefinition(functionTable.node.body);
+  useArguments = searchUseArguments(functionTable.node.body);
+  //TODO: figure out OPT_FRAME in .c file
+  existClosure = true;
+  setBytecodeUniReg(Nemonic.GETGLOBALOBJ, 0, 1);
+  if(existClosure || useArguments){
+    set_bc_unireg(Nemonic.NEWARGS, 0, 0);
+    functionTable.existClosure = true;
+  }
+  setBytecodeNum(Nemonic.SETFL, 2, 0);
+  initRegTbl(func_tbl.level);
+
+  //register arguments in rho
+  for(var i=0; i<functionTable.node.params.length; i++){
+    var name = functionTable.node.params[i].name;
+    if(existClosure || useArguments){
+      rho = environmentExpand(name, Location.LOC_ARG, functionTable.level, 1, i, rho);
+    } else {
+      var r = searchUnusedReg();
+      rho = environmentExpand(name, Location.LOC_REGISTER, functionTable.level, 1, r, rho);
+    }
+  }
+
+  var dst = 0;
+  for(var i=0; i<functionTable.node.body.length; i++){
+    if(functionTable.node.body[i].type == Tokens.VARIABLEDECLARATION){
+      for(var j=0; j<functionTable.node.body[i].declarations.length; j++){
+        if(functionTable.node.body[i].declarations[j].type == Tokens.VARIABLEDECLARATOR){
+          var name = functionTable.node.body[i].declarations[j].id.name;
+          if(existClosure || useArguments){
+            rho = environmentExpand(name, Location.LOC_LOCAL, functionTable.level, dst++, 1, rho);
+          } else {
+            var r = searchUnusedReg();
+            rho = environmentExpand(name, Location.LOC_REGISTER, functionTable.level, 1, r, rho);
+          }
+        }
+      }
+    }
+  }
+
+  variableNum[index] = dst;
+
+  compileBytecode(functionTable.node.body, rho, searchUnusedReg(), 0, functionTable.level);
+  retu = searchUnusedReg();
+  setBytecodeCons(Nemonic.SPECCONST, 1, retu, Const.UNDEFINED);
+  setBytecodeUniReg(Nemonic.SETA, 0, retu);
+  setBytecodeUniReg(Nemonic.RET, 0, 0);
+}
+
 var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
   if(root == null){
     return;
   }
 
-  if(TOKENS.indexOf(root.type) == -1){
-    //console.log("Unexpected token " + root.type + "\n");
-    return;
+  if(TOKENLIST.indexOf(root.type) == undefined){
+    throw new Error(root.type + ": NOT IMPLEMENTED YET.");
   }
 
   switch (root.type) {
-    case "Program":
+    case Tokens.PROGRAM:
       for(var i = 0; i < root.body.length; i++){
         compileBytecode(root.body[i], rho, dst, tailFlag, currentLevel);
       }
       break;
 
-    case "BinaryExpression":
+    case Tokens.BINARYEXPRESSION:
       var t1 = searchUnusedReg();
       var t2 = searchUnusedReg();
       compileBytecode(root.left, rho, t1, 0, currentLevel);
@@ -515,7 +641,7 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       }
       break;
 
-    case "AssignmentExpression":
+    case Tokens.ASSIGNMENTEXPRESSION:
       if(root.left.type == "Identifier"){
         var name = root.left.name;
         var t1 = searchUnusedReg();
@@ -532,13 +658,13 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       }
       break;
 
-    case "VariableDeclaration":
+    case Tokens.VARIABLEDECLARATION:
       for(var i = 0; i < root.declarations.length; i++){
         compileBytecode(root.declarations[i], rho, dst, tailFlag, currentLevel);
       }
       break;
 
-    case "VariableDeclarator":
+    case Tokens.VARIABLEDECLARATOR:
       if(root.init != null){
         var name = root.id.name;
         compileBytecode(root.init, rho, dst, 0, currentLevel);
@@ -546,7 +672,7 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       }
       break;
 
-    case "Literal":
+    case Tokens.LITERAL:
       if(root.value == null){
         setBytecodeCons(Nemonic.SPECCONST, 0, dst, Const.NULL);
         break;
@@ -573,11 +699,11 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       }
       break;
 
-    case "ThisExpression":
+    case Tokens.THISEXPRESSION:
       setBytecodeBiReg(Nemonic.MOVE, 0, dst, 1);
       break;
 
-    case "Identifier":
+    case Tokens.IDENTIFIER:
       var name = root.name;
       var tn = searchUnusedReg();
       var level, offset, index, location;
@@ -599,16 +725,16 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       }
       break;
 
-    case "ExpressionStatement":
+    case Tokens.EXPRESSIONSTATEMENT:
       compileBytecode(root.expression, rho, dst, 0, currentLevel);
       break;
-    case "SequenceExpression":
+    case Tokens.SEQUENCEEXPRESSION:
       for(var i=0; i<root.expressions.length; i++){
         compileBytecode(root.expressions[i], rho, dst, 0, currentLevel);
       }
       break;
 
-    case "IfStatement":
+    case Tokens.IFSTATEMENT:
       var elseExists = true;
       if(root.alternate === null)
         elseExists = false;
@@ -636,10 +762,59 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       }
       break;
 
-    case "BlockStatement":
+    case Tokens.BLOCKSTATEMENT:
       for(var i=0; i<root.body.length; i++){
         compileBytecode(root.body[i], rho, dst, tailFlag, currentLevel);
       }
+      break;
+
+    case Tokens.WHILESTATEMENT:
+      var t = searchUnusedReg();
+      var l1 = currentLabel++;
+      var l2 = currentLabel++;
+      var j1, j2;
+      j1 = currentCodeNum;
+      setBytecodeNum(Nemonic.JUMP, 1, l1);
+      l2 = currentCodeNum;
+      compileBytecode(root.body, rho, dst, 0, currentLevel);
+      l1 = currentCodeNum;
+      compileBytecode(root.test, rho, t, 0, currentLevel);
+      j2 = currentCodeNum;
+      setBytecodeRegnum(Nemonic.JUMPTRUE, 1, t, l2);
+      dispatchLabel(j1, l1);
+      dispatchLabel(j2, l2);
+      break;
+
+    case Tokens.DOWHILESTATEMENT:
+      var t = searchUnusedReg();
+      var l1 = currentLabel++;
+      var j1;
+      l1 = currentCodeNum;
+      compileBytecode(root.body, rho, dst, 0, currentLevel);
+      compileBytecode(root.test, rho, t, 0, currentLevel);
+      j1 = currentCodeNum;
+      setBytecodeRegnum(Nemonic.JUMPTRUE, 1, t, l1);
+      dispatchLabel(j1, l1);
+      break;
+
+    case Tokens.FORSTATEMENT:
+      //TODO: add closure part
+      var t = searchUnusedReg();
+      var l1 = currentLabel++;
+      var l2 = currentLabel++;
+      var j1, j2;
+      compileBytecode(root.init, rho, t, 0, currentLevel);
+      j1 = currentCodeNum;
+      setBytecodeNum(Nemonic.JUMP, 1, l1);
+      l2 = currentCodeNum;
+      compileBytecode(root.body, rho, dst, 0, currentLevel);
+      compileBytecode(root.update, rho, t, 0, currentLevel);
+      l1 = currentCodeNum;
+      compileBytecode(root.test, rho, t, 0, currentLevel);
+      j2 = currentCodeNum;
+      setBytecodeRegnum(Nemonic.JUMPTRUE, 1, t, l2);
+      dispatchLabel(j1, l1);
+      dispatchLabel(j2, l2);
       break;
 
     default:
@@ -651,7 +826,7 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
 var processSourceCode = function(){
   var rho = new Environment();
   var globalDst;
-  initRegTbl();
+  initRegTbl(0);
   initBytecode();
   initVariableNumCodeNum();
 
