@@ -1,63 +1,48 @@
-funcLength 1
+funcLength 2
 callentry 0
 sendentry 0
 numberOfLocals 0
-numberOfInstruction 58
+numberOfInstruction 24
 getglobalobj 1
-setfl 48
-fixnum 2 9
-string 3 "a"
+setfl 18
+makeclosure 2 0
+string 3 "swap"
 setglobal 3 2
-fixnum 2 1
-string 4 "i"
+fixnum 2 30
+string 4 "a"
 setglobal 4 2
-fixnum 2 0
-string 5 "mul"
+fixnum 2 20
+string 5 "b"
 setglobal 5 2
-string 11 "mul"
-getglobal 9 11
-string 12 "a"
-getglobal 10 12
-add 2 9 10
-string 13 "mul"
-setglobal 13 2
-string 18 "i"
-getglobal 16 18
-fixnum 17 1
-add 2 16 17
-string 19 "i"
-setglobal 19 2
-string 22 "i"
-getglobal 20 22
-fixnum 21 5
-lessthanequal 6 20 21
-jumptrue 6 -17
-fixnum 2 0
-string 25 "mul"
-setglobal 25 2
-fixnum 26 0
-string 27 "b"
-setglobal 27 26
-jump 14
-string 32 "mul"
-getglobal 30 32
-string 33 "a"
-getglobal 31 33
-add 2 30 31
-string 34 "mul"
-setglobal 34 2
-string 39 "b"
-getglobal 37 39
-fixnum 38 1
-add 26 37 38
-string 40 "b"
-setglobal 40 26
-string 43 "b"
-getglobal 41 43
-fixnum 42 7
-lessthan 26 41 42
-jumptrue 26 -17
-string 44 "mul"
-getglobal 2 44
+string 9 "swap"
+getglobal 6 9
+string 10 "a"
+getglobal 7 10
+string 11 "b"
+getglobal 8 11
+move 17 7
+move 18 8
+call 6 2
+setfl 18
+geta 2
 seta 2
+ret
+callentry 0
+sendentry 1
+numberOfLocals 3
+numberOfInstruction 15
+getglobalobj 1
+newargs
+setfl 16
+getarg 2 0 0
+setlocal 0 2 2
+getarg 2 0 1
+setarg 0 0 2
+getlocal 2 0 2
+setarg 0 1 2
+getarg 10 0 0
+seta 10
+ret
+specconst 12 undefined
+seta 12
 ret

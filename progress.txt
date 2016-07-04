@@ -25,8 +25,11 @@ ForStatement
 TODO
 -------------------------------------------
 - searchUseArguments()
+- generator function
 - searchFunctionDefinition()
-- += -=
+- += -= ===
+- receiver method call
+- tailflag
 - preincrement postincrement
 - for loop closure part
 -------------------------------------------

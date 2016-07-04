@@ -24,7 +24,7 @@ var TOKENLIST = [
   "ThisExpression", "ThrowStatement", "TryStatement",
   "UnaryExpression", "UpdateExpression", "VariableDeclaration",
   "VariableDeclarator", "WhileStatement", "WithStatement",
-  "YieldExpression"
+  "YieldExpression", "MEMBEREXPRESSION"
 ];
 
 Tokens = {
@@ -95,7 +95,8 @@ Tokens = {
   VARIABLEDECLARATOR : "VariableDeclarator",
   WHILESTATEMENT : "WhileStatement",
   WITHSTATEMENT : "WithStatement",
-  YIELDEXPRESSION : "YieldExpression"
+  YIELDEXPRESSION : "YieldExpression",
+  MEMBEREXPRESSION : "MemberExpression"
 }
 
 //define constants
@@ -137,6 +138,12 @@ Nemonic = {
   LESSTHAN : "lessthan",
   LESSTHANEQUAL : "lessthanequal",
   NEWARGS : "newargs",
+  MAKECLOSURE : "makeclosure",
+  GETARG : "getarg",
+  GETLOCAL : "getlocal",
+  CALL : "call",
+  SETLOCAL : "setlocal",
+  SETARG : "setarg"
 }
 
 //Location
@@ -217,6 +224,11 @@ function num(n){
 function constType(dst, cons){
   this.dst = dst;
   this.cons = cons;
+}
+function variable(n1, n2, r1){
+  this.n1 = n1;
+  this.n2 = n2;
+  this.r1 = r1;
 }
 
 var arithNemonic = function(operator){
@@ -324,6 +336,11 @@ var setBytecodeTriReg = function(nemonic, flag, r1, r2, r3){
   bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, tri);
 }
 
+var setBytecodeVariable = function(nemonic, flag, n1, n2, r1){
+  var v = new variable(n1, n2, r1);
+  bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, v);
+}
+
 var setBytecodeNum = function(nemonic, flag, n1){
   var n = new num(n1);
   bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, n);
@@ -368,8 +385,12 @@ var setBytecodeFl = function(){
           bytecode[currentCode][i].flag = 0;
           bytecode[currentCode][i].bcType.n1 += frameLinkTable[currentCode];
           break;
+        case Nemonic.MOVE:
+          bytecode[currentCode][i].flag = 0;
+          bytecode[currentCode][i].bcType.r1 += frameLinkTable[currentCode];
+          break;
         default:
-          throw new Error("setBytecodeFl Unexpected expression: '" + bytecode[i][j].nemonic + "'\n");
+          throw new Error("setBytecodeFl Unexpected expression: '" + bytecode[currentCode][i].nemonic + "'\n");
       }
     }
   }
@@ -397,6 +418,11 @@ var dispatchLabel = function(jumpLine, labelLine){
   }
 }
 
+function environmentExpand(name, location, level, offset, index, rho){
+  var e = new Environment(name, location, level, offset, index, rho);
+  return e;
+}
+
 var calculateFrameLink = function(){
   return highestRegTouched() + maxFuncFl + 4;
 }
@@ -410,15 +436,134 @@ var environmentLookup = function(rho, currentLevel, name){
         index : rho.index,
         location : rho.location
       }
-      rho = rho.next;
     }
+    rho = rho.next;
+  }
 
-    return {
-      level : null,
-      offset : null,
-      index : null,
-      location : Location.LOC_GLOBAL
-    };
+  return {
+    level : null,
+    offset : null,
+    index : null,
+    location : Location.LOC_GLOBAL
+  };
+}
+
+function addFunctionTable(node, rho, level){
+  var existClosure = level > 1;
+  var f = new FunctionTable(node, rho, existClosure, level, null, null);
+  functionTable[currentFunction] = f;
+  // currentFunction++;
+  return currentFunction++ - 1;
+}
+
+function searchFunctionDefinition(root){
+  if(root == undefined || root == null){
+    return false;
+  }
+
+  if(TOKENLIST.indexOf(root.type) == undefined){
+    return false;
+  }
+
+  switch(root.type){
+    case Tokens.BINARYEXPRESSION:
+      return searchFunctionDefinition(root.left) || searchFunctionDefinition(root.right)
+    case Tokens.EXPRESSIONSTATEMENT:
+      return searchFunctionDefinition(root.expression);
+    case Tokens.ASSIGNMENTEXPRESSION:
+      return searchFunctionDefinition(root.left || root.right);
+    case Tokens.WHILESTATEMENT:
+    case Tokens.DOWHILESTATEMENT:
+      return searchFunctionDefinition(root.test || root.body);
+    case Tokens.RETURNSTATEMENT:
+      return searchFunctionDefinition(root.argument);
+    case Tokens.IFSTATEMENT:
+      return searchFunctionDefinition(root.test || root.consequent || root.alternate);
+    case Tokens.FORSTATEMENT:
+      return searchFunctionDefinition(root.init || root.test || root.update || root.body);
+    case Tokens.VARIABLEDECLARATION:
+      var f = false;
+      for(var i=0; i<root.declarations.length && !f; i++){
+        f = searchFunctionDefinition(root.declarations[i]);
+      }
+      return f;
+    case Tokens.FUNCTIONDECLARATION:
+      return true;
+    case Tokens.LITERAL:
+      return false;
+    case Tokens.VARIABLEDECLARATOR:
+      return searchFunctionDefinition(root.id || root.init);
+    case Tokens.MEMBEREXPRESSION:
+      return searchUseArguments(root.object || root.property);
+    case Tokens.IDENTIFIER:
+      return false;
+    case Tokens.LITERAL:
+      return false;
+    case Tokens.BLOCKSTATEMENT:
+      var f = false;
+      for(var i=0; i<root.body.length && !f; i++){
+        f = searchFunctionDefinition(root.body[i]);
+      }
+      return f;
+
+    default:
+      throw new Error("searchFunctionDefinition(): '" + root.type + "' NOT IMPLEMENTED YET.\n");
+  }
+}
+
+function searchUseArguments(root){
+  if(root == undefined || root == null){
+    return false;
+  }
+
+  if(TOKENLIST.indexOf(root.type) == undefined){
+    return false;
+  }
+
+  switch(root.type){
+    case Tokens.BINARYEXPRESSION:
+      return searchUseArguments(root.left) || searchUseArguments(root.right)
+    case Tokens.EXPRESSIONSTATEMENT:
+      return searchUseArguments(root.expression);
+    case Tokens.ASSIGNMENTEXPRESSION:
+      return searchUseArguments(root.left || root.right);
+    case Tokens.WHILESTATEMENT:
+    case Tokens.DOWHILESTATEMENT:
+      return searchUseArguments(root.test || root.body);
+    case Tokens.RETURNSTATEMENT:
+      return searchUseArguments(root.argument);
+    case Tokens.IFSTATEMENT:
+      return searchUseArguments(root.test || root.consequent || root.alternate);
+    case Tokens.FORSTATEMENT:
+      return searchUseArguments(root.init || root.test || root.update || root.body);
+    case Tokens.VARIABLEDECLARATION:
+      var f = false;
+      for(var i=0; i<root.declarations.length && !f; i++){
+        f = searchUseArguments(root.declarations[i]);
+      }
+      return f;
+    case Tokens.FUNCTIONDECLARATION:
+      return false;
+    case Tokens.LITERAL:
+      return false;
+    case Tokens.VARIABLEDECLARATOR:
+      return searchUseArguments(root.id || root.init);
+    case Tokens.MEMBEREXPRESSION:
+      return searchUseArguments(root.object || root.property);
+    case Tokens.IDENTIFIER:
+      return root.name === "arguments";
+    case Tokens.LITERAL:
+      return false;
+    case Tokens.BLOCKSTATEMENT:
+      var f = false;
+      for(var i=0; i<root.body.length && !f; i++){
+        f = searchUseArguments(root.body[i]);
+      }
+      return f;
+
+
+    default:
+      throw new Error("searchUseArguments(): '" + root.type + "' NOT IMPLEMENTED YET.\n");
   }
 }
 
@@ -435,7 +580,7 @@ var printBytecode = function(bytecode, num, writeStream){
       if(bytecode[i][j].label != null && bytecode[i][j].label != 0){
         writeStream.write(bytecode[i][j].label + ":\n");
       }
-
+      // console.log("i = " + i + ", j = " + j + ", nemonic = " + bytecode[i][j].nemonic);
       switch (bytecode[i][j].nemonic) {
         case Nemonic.NUMBER:
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.dst + " " + bytecode[i][j].bcType.val + "\n");
@@ -516,6 +661,28 @@ var printBytecode = function(bytecode, num, writeStream){
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.r2 + " " + bytecode[i][j].bcType.r3 + "\n");
           break;
 
+        case Nemonic.MAKECLOSURE:
+          writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.n1 + "\n");
+          break;
+
+        case Nemonic.NEWARGS:
+          writeStream.write(bytecode[i][j].nemonic + "\n");
+          break;
+
+        case Nemonic.GETARG:
+        case Nemonic.GETLOCAL:
+          writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.n1 + " " + bytecode[i][j].bcType.n2 + "\n");
+          break;
+
+        case Nemonic.CALL:
+          writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.n1 + "\n");
+          break;
+
+        case Nemonic.SETARG:
+        case Nemonic.SETLOCAL:
+          writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.n1 + " " + bytecode[i][j].bcType.n2 + " " + bytecode[i][j].bcType.r1 + "\n");
+          break;
+
         default:
           throw new Error("Nemonic: '" + bytecode[i][j].nemonic + "' NOT IMPLEMENTED YET. i=" + "\n");
       }
@@ -529,7 +696,7 @@ var compileAssignment = function(str, rho, src, currentLevel){
 
   level = obj.level;
   offset = obj.offset;
-  index = obj.index;
+  index = obj.index;searchFunctionDefinition
   location = obj.location;
 
   switch (location) {
@@ -541,9 +708,15 @@ var compileAssignment = function(str, rho, src, currentLevel){
       var tn = searchUnusedReg();
       setBytecodeString(Nemonic.STRING, 0, tn, str);
       setBytecodeBiReg(Nemonic.SETGLOBAL, 0, tn, src);
-      // TODO: releaseReg(currentTable, tn);
+      break;
+    case Location.LOC_LOCAL:
+      setBytecodeVariable(Nemonic.SETLOCAL, 0, level, offset, src);
+      break;
+    case Location.LOC_ARG:
+      setBytecodeVariable(Nemonic.SETARG, 0, level, index, src);
       break;
     default:
+      throw new Error(location + ": NOT IMPLEMENTED YET.");
   }
 }
 
@@ -561,11 +734,11 @@ function compileFunction(functionTable, index){
   existClosure = true;
   setBytecodeUniReg(Nemonic.GETGLOBALOBJ, 0, 1);
   if(existClosure || useArguments){
-    set_bc_unireg(Nemonic.NEWARGS, 0, 0);
+    setBytecodeUniReg(Nemonic.NEWARGS, 0, 0);
     functionTable.existClosure = true;
   }
   setBytecodeNum(Nemonic.SETFL, 2, 0);
-  initRegTbl(func_tbl.level);
+  initRegTbl(functionTable.level);
 
   //register arguments in rho
   for(var i=0; i<functionTable.node.params.length; i++){
@@ -578,12 +751,12 @@ function compileFunction(functionTable, index){
     }
   }
 
-  var dst = 0;
-  for(var i=0; i<functionTable.node.body.length; i++){
-    if(functionTable.node.body[i].type == Tokens.VARIABLEDECLARATION){
-      for(var j=0; j<functionTable.node.body[i].declarations.length; j++){
-        if(functionTable.node.body[i].declarations[j].type == Tokens.VARIABLEDECLARATOR){
-          var name = functionTable.node.body[i].declarations[j].id.name;
+  var dst = 2;
+  for(var i=0; i<functionTable.node.body.body.length; i++){
+    if(functionTable.node.body.body[i].type == Tokens.VARIABLEDECLARATION){
+      for(var j=0; j<functionTable.node.body.body[i].declarations.length; j++){
+        if(functionTable.node.body.body[i].declarations[j].type == Tokens.VARIABLEDECLARATOR){
+          var name = functionTable.node.body.body[i].declarations[j].id.name;
           if(existClosure || useArguments){
             rho = environmentExpand(name, Location.LOC_LOCAL, functionTable.level, dst++, 1, rho);
           } else {
@@ -707,7 +880,7 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       var name = root.name;
       var tn = searchUnusedReg();
       var level, offset, index, location;
-      var obj = environmentLookup(rho, currentLevel, str);
+      var obj = environmentLookup(rho, currentLevel, name);
 
       level = obj.level;
       offset = obj.offset;
@@ -716,6 +889,15 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
 
       switch (location) {
         //TODO: Add LOC_LOCAL, LOC_REGISTER, and LOC_ARG
+        case Location.LOC_REGISTER:
+          setBytecodeBiReg(Nemonic.MOVE, 0, dst, index);
+          break;
+        case Location.LOC_LOCAL:
+          setBytecodeVariable(Nemonic.GETLOCAL, 0, level, offset, dst);
+          break;
+        case Location.LOC_ARG:
+          setBytecodeVariable(Nemonic.GETARG, 0, level, index, dst);
+          break;
         case Location.LOC_GLOBAL:
           setBytecodeString(Nemonic.STRING, 0, tn, name);
           setBytecodeBiReg(Nemonic.GETGLOBAL, 0, dst, tn);
@@ -817,6 +999,43 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       dispatchLabel(j2, l2);
       break;
 
+    case Tokens.FUNCTIONEXPRESSION:
+    case Tokens.FUNCTIONDECLARATION:
+      var n = addFunctionTable(root, rho, currentLevel+1);
+      setBytecodeRegnum(Nemonic.MAKECLOSURE, 0, dst, n);
+      break;
+
+    case Tokens.RETURNSTATEMENT:
+      var t = searchUnusedReg();
+      compileBytecode(root.argument, rho, t, 1, currentLevel);
+      setBytecodeUniReg(Nemonic.SETA, 0, t);
+      setBytecodeUniReg(Nemonic.RET, 0, -1);
+      break;
+
+    case Tokens.CALLEXPRESSION:
+      var t = new Array(root.arguments.length + 1);
+      for(var i=0; i<t.length; i++){
+        t[i] = searchUnusedReg();
+      }
+
+      compileBytecode(root.callee, rho, t[0], 0, currentLevel);
+      for(var i=1; i<t.length; i++){
+        compileBytecode(root.arguments[i-1], rho, t[i], 0, currentLevel);
+      }
+      //TODO: tailflag
+      for(var i=1; i<t.length; i++){
+        setBytecodeBiReg(Nemonic.MOVE, 2, i - root.arguments.length, t[i]);
+      }
+
+      setBytecodeRegnum(Nemonic.CALL, 0, t[0], root.arguments.length);
+      setBytecodeNum(Nemonic.SETFL, 2, 0);
+      setBytecodeUniReg(Nemonic.GETA, 0, dst);
+
+      if(root.arguments.length > maxFuncFl){
+        maxFuncFl = root.arguments.length+1;
+      }
+      break;
+
     default:
       throw new Error(root.type + ": NOT IMPLEMENTED YET.");
   }
@@ -840,10 +1059,14 @@ var processSourceCode = function(){
   setBytecodeUniReg(Nemonic.RET, 0, 0);
   frameLinkTable[0] = calculateFrameLink();
   setBytecodeFl();
-
-  //TODO: Insert function compilation part
-
   codeNum[0] = currentCodeNum;
+
+  for(var i=1; i<currentFunction; i++){
+    compileFunction(functionTable[i], i);
+    codeNum[i] = currentCodeNum;
+    frameLinkTable[currentCode] = calculateFrameLink();
+    setBytecodeFl(currentCode);
+  }
 
   printBytecode(bytecode, currentFunction, writeStream);
   writeStream.end();

@@ -1,12 +1,10 @@
-var a = 9;
-var i = 1;
-var mul = 0;
-do{
-  mul = mul+a;
-  i = i+1;
-}while(i <= 5)
-mul = 0
-for(var b = 0; b < 7; b = b+1){
-  mul = mul + a
+var swap = function(firstNumber, secondNumber){
+  var temporaryVariable = firstNumber;
+  firstNumber = secondNumber;
+  secondNumber = temporaryVariable;
+  return firstNumber
 }
-mul
+
+var a = 30;
+var b = 20;
+swap(a, b);
