@@ -1,5 +1,6 @@
 ISSUES
 -----------------------------------------
+* What is getidx instruction?
 * Figure out the working of compile_function()
 * What is OPT_FRAME? Looks like existClosure will always be true as OPT_FRAME
   exists nowhere.

@@ -20,14 +20,21 @@ BlockStatement
 WhileStatement
 DoWhileStatement
 ForStatement
+Array
+Object
+
 -------------------------------------------
 
 TODO
 -------------------------------------------
+- new keyword
 - searchUseArguments()
 - generator function
 - searchFunctionDefinition()
+- searchFunctionDefinition(): Case TOK_LP: TOK_DOT part
+- TOK_ASSIGN: TOK_DOT part
 - += -= ===
+- switch case
 - receiver method call
 - tailflag
 - preincrement postincrement
