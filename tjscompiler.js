@@ -153,7 +153,8 @@ Nemonic = {
   GETIDX: "getidx",
   GETPROP: "getprop",
   SEND : "send",
-  SETPROP: "setprop"
+  SETPROP: "setprop",
+  INSTANCEOF: "instanceof"
 }
 
 //Location
@@ -351,11 +352,6 @@ var setBytecodeTriReg = function(nemonic, flag, r1, r2, r3){
 var setBytecodeVariable = function(nemonic, flag, n1, n2, r1){
   var v = new variable(n1, n2, r1);
   bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, v);
-}
-
-var setBytecodeNum = function(nemonic, flag, n1){
-  var n = new num(n1);
-  bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, n);
 }
 
 var setBytecodeString = function(nemonic, flag, dst, theString){
@@ -562,6 +558,7 @@ function searchUseArguments(root){
       return searchUseArguments(root.object || root.property);
     case Tokens.IDENTIFIER:
       return root.name === "arguments";
+    case Tokens.THISEXPRESSION:
     case Tokens.LITERAL:
       return false;
     case Tokens.BLOCKSTATEMENT:
@@ -590,7 +587,6 @@ var printBytecode = function(bytecode, num, writeStream){
       if(bytecode[i][j].label != null && bytecode[i][j].label != 0){
         writeStream.write(bytecode[i][j].label + ":\n");
       }
-      // console.log("i = " + i + ", j = " + j + ", nemonic = " + bytecode[i][j].nemonic);
       switch (bytecode[i][j].nemonic) {
         case Nemonic.NUMBER:
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.dst + " " + bytecode[i][j].bcType.val + "\n");
@@ -671,6 +667,7 @@ var printBytecode = function(bytecode, num, writeStream){
         case Nemonic.GETPROP:
         case Nemonic.SETPROP:
         case Nemonic.LESSTHAN:
+        case Nemonic.INSTANCEOF:
         case Nemonic.LESSTHANEQUAL:
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.r2 + " " + bytecode[i][j].bcType.r3 + "\n");
           break;
@@ -716,7 +713,7 @@ var compileAssignment = function(str, rho, src, currentLevel){
 
   level = obj.level;
   offset = obj.offset;
-  index = obj.index;searchFunctionDefinition
+  index = obj.index;
   location = obj.location;
 
   switch (location) {
@@ -849,36 +846,57 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
           compileAssignment(name, rho, dst, currentLevel);
         }
       } else if(root.left.type == Tokens.MEMBEREXPRESSION){
-        var t1 = searchUnusedReg();
-        var t2 = searchUnusedReg();
-        var t3 = searchUnusedReg();
-        var t4 = searchUnusedReg();
-        var t5 = searchUnusedReg();
-        var fGetIdX = searchUnusedReg();
-        if(root.operator == "="){
-          compileBytecode(root.left.object, rho, t1, 0, currentLevel);
-          compileBytecode(root.left.property, rho, t3, 0, currentLevel);
-          compileBytecode(root.right, rho, t2, 0, currentLevel);
-          setBytecodeBiReg(Nemonic.GETIDX, 0, fGetIdX, t3);
-          setBytecodeBiReg(Nemonic.MOVE, 2, 0, t3);
-          setBytecodeRegnum(Nemonic.SEND, 0, fGetIdX, 0);
-          setBytecodeNum(Nemonic.SETFL, 2, 0);
-          setBytecodeUniReg(Nemonic.GETA, 0, t4);
-          setBytecodeTriReg(Nemonic.SETPROP, 0, t1, t4, t2);
-        } else {
-          compileBytecode(root.left.object, rho, t1, 0, currentLevel);
-          compileBytecode(root.left.property, rho, t3, 0, currentLevel);
-          compileBytecode(root.right, rho, t2, 0, currentLevel);
-          setBytecodeBiReg(Nemonic.GETIDX, 0, fGetIdX, t3);
-          setBytecodeBiReg(Nemonic.MOVE, 2, 0, t3);
-          setBytecodeRegnum(Nemonic.SEND, 0, fGetIdX, 0);
-          setBytecodeNum(Nemonic.SETFL, 2, 0);
-          setBytecodeUniReg(Nemonic.GETA, 0, t4);
-          setBytecodeTriReg(Nemonic.GETPROP, 0, t5, t1, t4);
-          setBytecodeTriReg(arithNemonic(root.operator.substring(0,1)), 0, t5, t5, t4);
-          setBytecodeTriReg(Nemonic.SETPROP, 0, t1, t4, t5);
-        }
-      }
+            if((root.left.computed === true) &&
+              ((root.left.property.type == Tokens.IDENTIFIER) ||
+               (typeof root.left.property.value == "number"))){
+              var t1 = searchUnusedReg();
+              var t2 = searchUnusedReg();
+              var t3 = searchUnusedReg();
+              var t4 = searchUnusedReg();
+              var t5 = searchUnusedReg();
+              var fGetIdX = searchUnusedReg();
+              if(root.operator == "="){
+                compileBytecode(root.left.object, rho, t1, 0, currentLevel);
+                compileBytecode(root.left.property, rho, t3, 0, currentLevel);
+                compileBytecode(root.right, rho, t2, 0, currentLevel);
+                setBytecodeBiReg(Nemonic.GETIDX, 0, fGetIdX, t3);
+                setBytecodeBiReg(Nemonic.MOVE, 2, 0, t3);
+                setBytecodeRegnum(Nemonic.SEND, 0, fGetIdX, 0);
+                setBytecodeNum(Nemonic.SETFL, 2, 0);
+                setBytecodeUniReg(Nemonic.GETA, 0, t4);
+                setBytecodeTriReg(Nemonic.SETPROP, 0, t1, t4, t2);
+              } else {
+                compileBytecode(root.left.object, rho, t1, 0, currentLevel);
+                compileBytecode(root.left.property, rho, t3, 0, currentLevel);
+                compileBytecode(root.right, rho, t2, 0, currentLevel);
+                setBytecodeBiReg(Nemonic.GETIDX, 0, fGetIdX, t3);
+                setBytecodeBiReg(Nemonic.MOVE, 2, 0, t3);
+                setBytecodeRegnum(Nemonic.SEND, 0, fGetIdX, 0);
+                setBytecodeNum(Nemonic.SETFL, 2, 0);
+                setBytecodeUniReg(Nemonic.GETA, 0, t4);
+                setBytecodeTriReg(Nemonic.GETPROP, 0, t5, t1, t4);
+                setBytecodeTriReg(arithNemonic(root.operator.substring(0,1)), 0, t5, t5, t4);
+                setBytecodeTriReg(Nemonic.SETPROP, 0, t1, t4, t5);
+              }
+            } else if(root.left.property.type == Tokens.LITERAL ||
+                      root.left.computed === false){
+                var t1 = searchUnusedReg()
+                var t2 = searchUnusedReg()
+                var t3 = searchUnusedReg()
+                var t4 = searchUnusedReg()
+                var str
+                if(root.left.property.type === Tokens.IDENTIFIER)
+                  str = root.left.property.name
+                else
+                  var str = root.left.property.value
+                if(root.operator === "="){
+                  compileBytecode(root.left.object, rho, t1, 0, currentLevel)
+                  compileBytecode(root.right, rho, dst, 0, currentLevel)
+                  setBytecodeString(Nemonic.STRING, 0, t3, str)
+                  setBytecodeTriReg(Nemonic.SETPROP, 0, t1, t3, dst)
+                }
+            }
+          }
       break;
 
     case Tokens.VARIABLEDECLARATION:
@@ -1116,7 +1134,7 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       break;
 
     case Tokens.MEMBEREXPRESSION:
-      if(root.computed === true){
+      if((root.computed === true) && (typeof root.property.value === "number")){
         var r1 = searchUnusedReg();
         var r2 = searchUnusedReg();
         var fGetIdX = searchUnusedReg();
@@ -1129,11 +1147,11 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
         setBytecodeNum(Nemonic.SETFL, 2, 0);
         setBytecodeUniReg(Nemonic.GETA, 0, r3);
         setBytecodeTriReg(Nemonic.GETPROP, 0, dst, r1, r3);
-        if(maxFuncFl == 0) maxFuncFl = 1;
+        if(maxFuncFl === 0) maxFuncFl = 1;
       } else {
         var t1 = searchUnusedReg();
         var t2 = searchUnusedReg();
-        var str = root.property.name;
+        var str = root.property.value;
         compileBytecode(root.object, rho, t1, 0, currentLevel);
         setBytecodeString(Nemonic.STRING, 0, t2, str);
         setBytecodeTriReg(Nemonic.GETPROP, 0, dst, t1, t2);
@@ -1156,32 +1174,124 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       setBytecodeUniReg(Nemonic.GETA, 0, dst);
 
       for(var i=0; i<root.properties.length; i++){
-        switch(root.properties[i].key.type){
-          case Tokens.IDENTIFIER:
-            var name = root.properties[i].key.name;
-            compileBytecode(root.properties[i].value, rho, propDst, 0, currentLevel);
-            setBytecodeString(Nemonic.STRING, 0, pstr, name);
-            setBytecodeTriReg(Nemonic.SETPROP, 0, dst, pstr, propDst);
-            break;
-          case Tokens.LITERAL:
-            compileBytecode(root.properties[i].value, rho, propDst, 0, currentLevel);
-            var val = root.properties[i].key.value;
-            if(Number.isSafeInteger(val)){
-              setBytecodeIVal(Nemonic.FIXNUM, 0, pstr, val);
-            } else{
-              setBytecodeDVal(Nemonic.NUMBER, 0, pstr, val);
-            }
-            setBytecodeBiReg(Nemonic.GETIDX, 0, fGetIdX, pstr);
-            setBytecodeBiReg(Nemonic.MOVE, 2, 0, pstr);
-            setBytecodeRegnum(Nemonic.SEND, 0, fGetIdX, 0);
-            setBytecodeNum(Nemonic.SETFL, 2, 0);
-            setBytecodeUniReg(Nemonic.GETA, 0, pstr);
-            setBytecodeTriReg(Nemonic.SETPROP, 0, dst, pstr, propDst);
-            break;
-        }
+        if(typeof root.properties[i].key.value === "number"){
+             compileBytecode(root.properties[i].value, rho, propDst, 0, currentLevel);
+             var val = root.properties[i].key.value;
+             if(Number.isSafeInteger(val)){
+               setBytecodeIVal(Nemonic.FIXNUM, 0, pstr, val);
+             } else{
+               setBytecodeDVal(Nemonic.NUMBER, 0, pstr, val);
+             }
+             setBytecodeBiReg(Nemonic.GETIDX, 0, fGetIdX, pstr);
+             setBytecodeBiReg(Nemonic.MOVE, 2, 0, pstr);
+             setBytecodeRegnum(Nemonic.SEND, 0, fGetIdX, 0);
+             setBytecodeNum(Nemonic.SETFL, 2, 0);
+             setBytecodeUniReg(Nemonic.GETA, 0, pstr);
+             setBytecodeTriReg(Nemonic.SETPROP, 0, dst, pstr, propDst);
+           } else {
+             var name
+             //TOK_NAME
+             if(root.properties[i].key.type === Tokens.IDENTIFIER)
+                name = root.properties[i].key.name
+             //TOK_STRING
+             else
+                name = root.properties[i].key.value;
+             compileBytecode(root.properties[i].value, rho, propDst, 0, currentLevel);
+             setBytecodeString(Nemonic.STRING, 0, pstr, name);
+             setBytecodeTriReg(Nemonic.SETPROP, 0, dst, pstr, propDst);
+           }
       }
       if(root.properties.length > maxFuncFl){
         maxFuncFl = root.properties.length;
+      }
+      break;
+
+    case Tokens.NEWEXPRESSION:
+      var tmp = []
+      var ts = searchUnusedReg()
+      var tg = searchUnusedReg()
+      var tins = searchUnusedReg()
+      var retr = searchUnusedReg()
+      var l1 = currentLabel++
+      var j1
+      for(var i=0; i<=root.arguments.length; i++){
+        tmp[i] = searchUnusedReg()
+      }
+      compileBytecode(root.callee, rho, tmp[0], 0, currentLevel)
+      for(i=1; i<=root.arguments.length; i++){
+        compileBytecode(root.arguments[i-1], rho, tmp[i], 0, currentLevel)
+      }
+      for(i=0; i<root.arguments.length; i++){
+        setBytecodeBiReg(Nemonic.MOVE, 2, -root.arguments.length + i + 1, tmp[i+1])
+      }
+      setBytecodeBiReg(Nemonic.NEW, 0, dst, tmp[0])
+      setBytecodeBiReg(Nemonic.MOVE, 2, -root.arguments.length, dst)
+      setBytecodeRegnum(Nemonic.NEWSEND, 0, tmp[0], root.arguments.length)
+      setBytecodeNum(Nemonic.SETFL, 2, 0)
+      setBytecodeString(Nemonic.STRING, 0, ts, "Object")
+      setBytecodeBiReg(Nemonic.GETGLOBAL, 0, tg, ts)
+      setBytecodeUniReg(Nemonic.GETA, 0, retr)
+      setBytecodeTriReg(Nemonic.INSTANCEOF, 0, tins, retr, tg)
+      j1 = currentCodeNum
+      setBytecodeRegnum(Nemonic.JUMPFALSE, 1, tins, l1)
+      setBytecodeUniReg(Nemonic.GETA, 0, dst)
+      l1 = currentCodeNum
+      if(root.arguments.length+1 > maxFuncFl){
+        maxFuncFl = root.arguments.length + 1
+      }
+
+      dispatchLabel(j1, l1)
+      break;
+
+    case Tokens.UPDATEEXPRESSION:
+      if(root.argument.type === Tokens.IDENTIFIER){
+        if(root.prefix){
+          var t1 = searchUnusedReg();
+          var tone = searchUnusedReg();
+          var str = root.argument.name;
+          var one = 1;
+          compileBytecode(root.argument, rho, t1, 0, currentLevel);
+          setBytecodeIVal(Nemonic.FIXNUM, 0, tone, one)
+          setBytecodeTriReg(arithNemonic(root.operator.substring(0,1)), 0, dst, t1, tone);
+          compileAssignment(str, rho, dst, currentLevel);
+        } else {
+          var t1 = searchUnusedReg();
+          var tone = searchUnusedReg();
+          var str = root.argument.name;
+          var one = 1;
+          compileBytecode(root.argument, rho, dst, 0, currentLevel);
+          setBytecodeIVal(Nemonic.FIXNUM, 0, tone, one);
+          setBytecodeTriReg(arithNemonic(root.operator.substring(0,1)), 0, t1, dst, tone);
+          compileAssignment(str, rho, t1, currentLevel);
+        }
+      } else if(root.argument.type === Tokens.MEMBEREXPRESSION){
+          if(root.prefix){
+            var t1 = searchUnusedReg();
+            var t2 = searchUnusedReg();
+            var tone = searchUnusedReg();
+            var tn = searchUnusedReg();
+            var str = root.argument.property.name;
+            var one = 1;
+            compileBytecode(root.argument.object, rho, t2, 0, currentLevel);
+            setBytecodeString(Nemonic.STRING, 0, tn, str);
+            setBytecodeTriReg(Nemonic.GETPROP, 0, t1, t2, tn);
+            setBytecodeIVal(Nemonic.FIXNUM, 0, tone, one);
+            setBytecodeTriReg(arithNemonic(root.operator.substring(0,1)), 0, dst, t1, tone);
+            setBytecodeTriReg(Nemonic.SETPROP, 0, t2, tn, dst);
+          } else {
+            var t1 = searchUnusedReg();
+            var t2 = searchUnusedReg();
+            var tone = searchUnusedReg();
+            var tn = searchUnusedReg();
+            var str = root.argument.property.name;
+            var one = 1;
+            compileBytecode(root.argument.object, rho, t2, 0, currentLevel);
+            setBytecodeString(Nemonic.STRING, 0, tn, str);
+            setBytecodeTriReg(Nemonic.GETPROP, 0, dst, t2, tn);
+            setBytecodeIVal(Nemonic.FIXNUM, 0, tone, one);
+            setBytecodeTriReg(arithNemonic(root.operator.substring(0,1)), 0, t1, dst, tone);
+            setBytecodeTriReg(Nemonic.SETPROP, 0, t2, tn, t1);
+          }
       }
       break;
 

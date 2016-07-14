@@ -21,13 +21,13 @@ WhileStatement
 DoWhileStatement
 ForStatement
 Array
+Functions
 Object
-
+new keyword
 -------------------------------------------
 
 TODO
 -------------------------------------------
-- new keyword
 - searchUseArguments()
 - generator function
 - searchFunctionDefinition()

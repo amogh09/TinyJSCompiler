@@ -8,6 +8,9 @@ ISSUES
 * for loop closure part, the 'else' part. See near line 1783.
 * won't we run out of registers? The searchUnusedReg() function.
 * Line: 680, why take parameter? Function is init_reg_tbl().
+Figure out following tokens -
+- TOK_OBJECT in compileBytecode
+- TOK_SHOP
 -------------------------------------------
 
 ANSWERED

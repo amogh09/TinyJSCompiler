@@ -1,0 +1,32 @@
+funcLength 2
+callentry 0
+sendentry 0
+numberOfLocals 0
+numberOfInstruction 14
+getglobalobj 1
+setfl 13
+makeclosure 2 0
+string 6 "amogh"
+getglobal 3 6
+fixnum 4 2
+fixnum 5 4
+move 12 4
+move 13 5
+call 3 2
+setfl 13
+geta 2
+seta 2
+ret
+callentry 0
+sendentry 1
+numberOfLocals 2
+numberOfInstruction 9
+getglobalobj 1
+newargs
+setfl 11
+getarg 3 0 0
+getarg 4 0 1
+add 2 3 4
+specconst 7 undefined
+seta 7
+ret
