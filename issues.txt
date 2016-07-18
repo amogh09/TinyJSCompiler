@@ -1,5 +1,7 @@
 ISSUES
 -----------------------------------------
+* function declaration doesn't work unless a variable is used.
+e.g function add() doesn't work but var add = function() does.
 * What is getidx instruction?
 * Figure out the working of compile_function()
 * What is OPT_FRAME? Looks like existClosure will always be true as OPT_FRAME

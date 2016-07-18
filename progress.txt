@@ -28,15 +28,10 @@ new keyword
 
 TODO
 -------------------------------------------
-- searchUseArguments()
+- TOK_HOOK
+- ?: (if else alternative)
 - generator function
-- searchFunctionDefinition()
-- searchFunctionDefinition(): Case TOK_LP: TOK_DOT part
-- TOK_ASSIGN: TOK_DOT part
-- += -= ===
 - switch case
-- receiver method call
 - tailflag
-- preincrement postincrement
 - for loop closure part
 -------------------------------------------

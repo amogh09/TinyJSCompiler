@@ -1,32 +1,101 @@
-funcLength 2
+funcLength 3
 callentry 0
 sendentry 0
 numberOfLocals 0
-numberOfInstruction 14
+numberOfInstruction 43
 getglobalobj 1
-setfl 13
+setfl 31
 makeclosure 2 0
-string 6 "amogh"
-getglobal 3 6
-fixnum 4 2
-fixnum 5 4
-move 12 4
-move 13 5
-call 3 2
-setfl 13
+string 3 "person"
+setglobal 3 2
+string 13 "person"
+getglobal 8 13
+string 9 "Rajvi"
+string 10 "Nar"
+fixnum 11 21
+string 12 "brown"
+move 28 9
+move 29 10
+move 30 11
+move 31 12
+new 2 8
+move 27 2
+newsend 8 4
+setfl 31
+string 4 "Object"
+getglobal 5 4
+geta 7
+instanceof 6 7 5
+jumpfalse 6 2
 geta 2
+string 14 "p"
+setglobal 14 2
+string 19 "p"
+getglobal 17 19
+string 16 "changeName"
+getprop 15 17 16
+string 18 "Rathore"
+move 30 17
+move 31 18
+send 15 1
+setfl 31
+geta 2
+string 22 "p"
+getglobal 20 22
+string 21 "lastName"
+getprop 2 20 21
 seta 2
 ret
 callentry 0
 sendentry 1
 numberOfLocals 2
-numberOfInstruction 9
+numberOfInstruction 35
 getglobalobj 1
 newargs
-setfl 11
-getarg 3 0 0
-getarg 4 0 1
-add 2 3 4
-specconst 7 undefined
-seta 7
+setfl 36
+move 3 1
+getarg 2 0 0
+string 5 "firstName"
+setprop 3 5 2
+move 8 1
+getarg 2 0 1
+string 10 "lastName"
+setprop 8 10 2
+move 13 1
+getarg 2 0 2
+string 15 "age"
+setprop 13 15 2
+move 18 1
+getarg 2 0 3
+string 20 "eyeColor"
+setprop 18 20 2
+try 7
+move 24 1
+makeclosure 2 1
+string 26 "changeName"
+setprop 24 26 2
+finally
+jump 7
+setfl 36
+geterr 23
+move 28 1
+string 2 "error"
+string 30 "lastName"
+setprop 28 30 2
+specconst 32 undefined
+seta 32
+ret
+callentry 0
+sendentry 1
+numberOfLocals 2
+numberOfInstruction 10
+getglobalobj 1
+newargs
+setfl 12
+move 3 1
+getarg 2 0 0
+string 5 "lastName"
+setprop 3 5 2
+specconst 8 undefined
+seta 8
 ret

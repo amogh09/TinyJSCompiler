@@ -1,5 +1,18 @@
-function amogh(a, b){
-	 a + b
+var person = function (firstName, lastName, age, eyeColor) {
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.age = age;
+    this.eyeColor = eyeColor;
+    try{
+      this.changeName = function (name) {
+          this.lastName = name;
+      };
+    } catch(err) {
+      this.lastName = "error";
+    }
+
 }
 
-amogh(2, 4)
+var p = new person("Rajvi", "Nar", 21, "brown");
+p.changeName("Rathore");
+p.lastName
