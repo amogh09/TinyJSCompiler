@@ -1,5 +1,7 @@
 ISSUES
 -----------------------------------------
+* regexp
+* When to use MAKE_ITERATOR? 'else' part in TOK_FOR
 * function declaration doesn't work unless a variable is used.
 e.g function add() doesn't work but var add = function() does.
 * What is getidx instruction?

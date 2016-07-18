@@ -147,9 +147,6 @@ Nemonic = {
   SETARG : "setarg",
   NEW : "new",
   NEWSEND : "newsend",
-  SETARRAY : "setarray",
-  NEW : "new",
-  NEWSEND: "newsend",
   SETARRAY: "setarray",
   GETIDX: "getidx",
   GETPROP: "getprop",
@@ -166,7 +163,9 @@ Nemonic = {
   GETERR: "geterr",
   TRY: "try",
   FINALLY: "finally",
-  THROW: "throw"
+  THROW: "throw",
+  EQ: "eq",
+  TAILSEND: "tailsend"
 }
 
 //Location
@@ -708,6 +707,7 @@ var printBytecode = function(bytecode, num, writeStream){
         case Nemonic.SETPROP:
         case Nemonic.LESSTHAN:
         case Nemonic.INSTANCEOF:
+        case Nemonic.EQ:
         case Nemonic.EQUAL:
         case Nemonic.LESSTHANEQUAL:
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.r2 + " " + bytecode[i][j].bcType.r3 + "\n");
@@ -914,6 +914,9 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
           dispatchLabel(ffin2, tfin2);
           dispatchLabel(fconvb, tconvb);
           dispatchLabel(fsecond, tsecond);
+          break;
+        case "===":
+          setBytecodeTriReg(Nemonic.EQ, 0, dst, t1, t2);
           break;
         default:
           setBytecodeTriReg(arithNemonic(root.operator), 0, dst, t1, t2);
