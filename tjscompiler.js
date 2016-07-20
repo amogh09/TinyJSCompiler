@@ -503,6 +503,7 @@ function searchFunctionDefinition(root){
       return searchFunctionDefinition(root.argument);
     case Tokens.LOGICALEXPRESSION:
       return searchFunctionDefinition(root.left) || searchFunctionDefinition(root.right);
+    case Tokens.CONDITIONALEXPRESSION:
     case Tokens.IFSTATEMENT:
       return searchFunctionDefinition(root.test || root.consequent || root.alternate);
     case Tokens.FORSTATEMENT:
@@ -1078,6 +1079,24 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       for(var i=0; i<root.expressions.length; i++){
         compileBytecode(root.expressions[i], rho, dst, 0, currentLevel);
       }
+      break;
+
+    case Tokens.CONDITIONALEXPRESSION:
+      var t = searchUnusedReg();
+      var label1 = currentLabel++;
+      var label2 = currentLabel++;
+      var j1, j2, l1, l2;
+      compileBytecode(root.test, rho, t, 0, currentLevel);
+      j1 = currentCodeNum;
+      setBytecodeRegnum(Nemonic.JUMPFALSE, 1, t, label1);
+      l1 = currentCodeNum;
+      compileBytecode(root.consequent, rho, dst, tailFlag, currentLevel);
+      j2 = currentCodeNum;
+      setBytecodeNum(Nemonic.JUMP, 1, label2);
+      compileBytecode(root.alternate, rho, dst, tailFlag, currentLevel);
+      l2 = currentCodeNum;
+      dispatchLabel(j1, l1);
+      dispatchLabel(j2, l2);
       break;
 
     case Tokens.IFSTATEMENT:

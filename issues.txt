@@ -4,17 +4,11 @@ ISSUES
 * When to use MAKE_ITERATOR? 'else' part in TOK_FOR
 * function declaration doesn't work unless a variable is used.
 e.g function add() doesn't work but var add = function() does.
-* What is getidx instruction?
-* Figure out the working of compile_function()
 * What is OPT_FRAME? Looks like existClosure will always be true as OPT_FRAME
   exists nowhere.
-* When does useArguments return true?
-* for loop closure part, the 'else' part. See near line 1783.
-* won't we run out of registers? The searchUnusedReg() function.
 * Line: 680, why take parameter? Function is init_reg_tbl().
 Figure out following tokens -
-- TOK_OBJECT in compileBytecode
-- TOK_SHOP
+- TOK_HOOK
 -------------------------------------------
 
 ANSWERED
