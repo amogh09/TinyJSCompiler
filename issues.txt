@@ -7,8 +7,6 @@ e.g function add() doesn't work but var add = function() does.
 * What is OPT_FRAME? Looks like existClosure will always be true as OPT_FRAME
   exists nowhere.
 * Line: 680, why take parameter? Function is init_reg_tbl().
-Figure out following tokens -
-- TOK_HOOK
 -------------------------------------------
 
 ANSWERED

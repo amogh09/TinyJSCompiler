@@ -165,7 +165,8 @@ Nemonic = {
   FINALLY: "finally",
   THROW: "throw",
   EQ: "eq",
-  TAILSEND: "tailsend"
+  TAILSEND: "tailsend",
+  REGEXP: "regexp"
 }
 
 //Location
@@ -251,6 +252,11 @@ function variable(n1, n2, r1){
   this.n1 = n1;
   this.n2 = n2;
   this.r1 = r1;
+}
+function regexp(dst, str, flag){
+  this.dst = dst;
+  this.str = str;
+  this.flag = flag;
 }
 
 var arithNemonic = function(operator){
@@ -417,6 +423,11 @@ var setBytecodeFl = function(){
       }
     }
   }
+}
+
+var setBytecodeRegExp = function(nemonic, flag, dst, str, regFlag){
+  var reg = new regexp(dst, str, regFlag);
+  bytecode[currentCode][currentCodeNum++] = new Bytecode(nemonic, null, flag, null, null, reg);
 }
 
 var highestRegTouched = function(){
@@ -728,6 +739,10 @@ var printBytecode = function(bytecode, num, writeStream){
           writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.r1 + " " + bytecode[i][j].bcType.n1 + " " + bytecode[i][j].bcType.n2 + "\n");
           break;
 
+        case Nemonic.REGEXP:
+          writeStream.write(bytecode[i][j].nemonic + " " + bytecode[i][j].bcType.dst + " " + bytecode[i][j].bcType.flag + ' "' + bytecode[i][j].bcType.str + '"\n');
+          break;
+
         case Nemonic.SEND:
         case Nemonic.NEWSEND:
         case Nemonic.TAILCALL:
@@ -916,7 +931,6 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
           dispatchLabel(fconvb, tconvb);
           dispatchLabel(fsecond, tsecond);
           break;
-        case "===":
           setBytecodeTriReg(Nemonic.EQ, 0, dst, t1, t2);
           break;
         default:
@@ -1009,6 +1023,28 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
     case Tokens.LITERAL:
       if(root.value == null){
         setBytecodeCons(Nemonic.SPECCONST, 0, dst, Const.NULL);
+        break;
+      }
+
+      if(root.regex !== undefined){
+        var str = root.regex.pattern;
+        var flags = root.regex.flags;
+        var regExpFlag = 0;
+        for(var i=0; i<flags.length; i++){
+          switch (flags.charAt(i)) {
+            case 'g':
+              regExpFlag |= 1;
+              break;
+            case 'i':
+              regExpFlag |= 2;
+              break;
+            case 'm':
+              regExpFlag |= 4;
+              break;
+          }
+        }
+
+        setBytecodeRegExp(Nemonic.REGEXP, 0, dst, str, regExpFlag);
         break;
       }
 
