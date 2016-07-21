@@ -1377,7 +1377,7 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       break;
 
     case Tokens.MEMBEREXPRESSION:
-      if((root.computed === true) && (typeof root.property.value === "number")){
+      if((root.computed === true) && typeof root.property.value !== "string"){
         var r1 = searchUnusedReg();
         var r2 = searchUnusedReg();
         var fGetIdX = searchUnusedReg();
