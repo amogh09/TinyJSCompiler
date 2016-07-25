@@ -1,0 +1,235 @@
+funcLength 3
+callentry 0
+sendentry 0
+numberOfLocals 0
+numberOfInstruction 72
+getglobalobj 1
+setfl 28
+fixnum 6 15
+string 3 "Array"
+getglobal 4 3
+new 2 4
+move 28 6
+move 27 2
+newsend 4 1
+setfl 28
+geta 2
+fixnum 5 3
+setarray 2 0 5
+fixnum 5 1
+setarray 2 1 5
+fixnum 5 5
+setarray 2 2 5
+fixnum 5 3
+setarray 2 3 5
+fixnum 5 5
+setarray 2 4 5
+fixnum 5 6
+setarray 2 5 5
+fixnum 5 7
+setarray 2 6 5
+fixnum 5 2
+setarray 2 7 5
+fixnum 5 10
+setarray 2 8 5
+fixnum 5 23
+setarray 2 9 5
+fixnum 5 34
+setarray 2 10 5
+fixnum 5 23
+setarray 2 11 5
+fixnum 5 1
+setarray 2 12 5
+fixnum 5 2
+setarray 2 13 5
+fixnum 5 0
+setarray 2 14 5
+string 7 "arr"
+setglobal 7 2
+makeclosure 2 0
+string 8 "sort"
+setglobal 8 2
+makeclosure 2 1
+string 9 "swap"
+setglobal 9 2
+string 14 "sort"
+getglobal 10 14
+string 15 "arr"
+getglobal 11 15
+fixnum 12 0
+fixnum 13 14
+move 26 11
+move 27 12
+move 28 13
+call 10 3
+setfl 28
+geta 2
+string 20 "arr"
+getglobal 16 20
+fixnum 17 3
+getidx 18 17
+move 28 17
+send 18 0
+setfl 28
+geta 19
+getprop 2 16 19
+seta 2
+ret
+callentry 0
+sendentry 1
+numberOfLocals 2
+numberOfInstruction 110
+getglobalobj 1
+newargs
+setfl 86
+getarg 4 0 1
+getarg 5 0 2
+lessthan 3 4 5
+jumpfalse 3 101
+getarg 8 0 0
+getarg 9 0 2
+getidx 10 9
+move 86 9
+send 10 0
+setfl 86
+geta 11
+getprop 2 8 11
+string 14 "pivot"
+setglobal 14 2
+getarg 2 0 1
+string 16 "wall"
+setglobal 16 2
+getarg 17 0 1
+string 19 "i"
+setglobal 19 17
+jump 39
+getarg 23 0 0
+string 28 "i"
+getglobal 24 28
+getidx 25 24
+move 86 24
+send 25 0
+setfl 86
+geta 26
+getprop 21 23 26
+string 29 "pivot"
+getglobal 22 29
+lessthan 20 21 22
+jumpfalse 20 20
+string 34 "swap"
+getglobal 30 34
+getarg 31 0 0
+string 36 "wall"
+getglobal 32 36
+string 37 "i"
+getglobal 33 37
+move 84 31
+move 85 32
+move 86 33
+call 30 3
+setfl 86
+geta 2
+string 40 "wall"
+getglobal 2 40
+fixnum 39 1
+add 38 2 39
+string 41 "wall"
+setglobal 41 38
+string 44 "i"
+getglobal 17 44
+fixnum 43 1
+add 42 17 43
+string 45 "i"
+setglobal 45 42
+string 48 "i"
+getglobal 46 48
+getarg 47 0 2
+lessthan 17 46 47
+jumptrue 17 -42
+string 54 "swap"
+getglobal 50 54
+getarg 51 0 0
+string 56 "wall"
+getglobal 52 56
+getarg 53 0 2
+move 84 51
+move 85 52
+move 86 53
+call 50 3
+setfl 86
+geta 2
+string 62 "sort"
+getglobal 58 62
+getarg 59 0 0
+getarg 60 0 1
+string 67 "wall"
+getglobal 65 67
+fixnum 66 1
+sub 61 65 66
+move 84 59
+move 85 60
+move 86 61
+call 58 3
+setfl 86
+geta 2
+string 72 "sort"
+getglobal 68 72
+getarg 69 0 0
+string 76 "wall"
+getglobal 74 76
+fixnum 75 1
+add 70 74 75
+getarg 71 0 2
+move 84 69
+move 85 70
+move 86 71
+call 68 3
+setfl 86
+geta 2
+specconst 78 undefined
+seta 78
+ret
+callentry 0
+sendentry 1
+numberOfLocals 3
+numberOfInstruction 40
+getglobalobj 1
+newargs
+setfl 37
+getarg 3 0 0
+getarg 4 0 1
+getidx 5 4
+move 37 4
+send 5 0
+setfl 37
+geta 6
+getprop 2 3 6
+setlocal 0 2 2
+getarg 9 0 0
+getarg 11 0 1
+getarg 17 0 0
+getarg 18 0 2
+getidx 19 18
+move 37 18
+send 19 0
+setfl 37
+geta 20
+getprop 10 17 20
+getidx 14 11
+move 37 11
+send 14 0
+setfl 37
+geta 12
+setprop 9 12 10
+getarg 23 0 0
+getarg 25 0 2
+getlocal 24 0 2
+getidx 28 25
+move 37 25
+send 28 0
+setfl 37
+geta 26
+setprop 23 26 24
+specconst 32 undefined
+seta 32
+ret

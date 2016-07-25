@@ -931,6 +931,8 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
           dispatchLabel(fconvb, tconvb);
           dispatchLabel(fsecond, tsecond);
           break;
+
+        case "===":
           setBytecodeTriReg(Nemonic.EQ, 0, dst, t1, t2);
           break;
         default:
