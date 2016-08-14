@@ -1,0 +1,58 @@
+funcLength 3
+callentry 0
+sendentry 0
+numberOfLocals 0
+numberOfInstruction 16
+getglobalobj 1
+setfl 17
+makeclosure 2 0
+string 5 "a"
+setglobal 5 2
+string 10 "a"
+getglobal 8 10
+fixnum 9 2
+move 17 9
+call 8 1
+setfl 17
+geta 2
+string 11 "b"
+setglobal 11 2
+seta 2
+ret
+callentry 0
+sendentry 1
+numberOfLocals 3
+numberOfInstruction 18
+getglobalobj 1
+newargs
+setfl 19
+makeclosure 2 1
+string 5 "y"
+setglobal 5 2
+getarg 8 0 0
+getarg 9 0 0
+mul 2 8 9
+setlocal 0 2 2
+string 14 "y"
+getglobal 13 14
+tailcall 13 0
+seta 12
+ret
+specconst 15 undefined
+seta 15
+ret
+callentry 0
+sendentry 1
+numberOfLocals 2
+numberOfInstruction 11
+getglobalobj 1
+newargs
+setfl 12
+getlocal 4 1 2
+getarg 5 1 0
+add 3 4 5
+seta 3
+ret
+specconst 8 undefined
+seta 8
+ret

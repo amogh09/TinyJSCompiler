@@ -4,4 +4,34 @@ Feature List
 -------------------------------------------
 Data types
 -Number
--Fixnum 
+-Fixnum
+
+BinaryExpression
+- <, <=, >, >=
+- + - * /
+
+Constants
+-true
+-false
+-null
+-ThisExpression
+
+BlockStatement
+WhileStatement
+DoWhileStatement
+ForStatement
+Array
+Functions
+Object
+new keyword
+-------------------------------------------
+
+TODO
+-------------------------------------------
+- TOK_HOOK
+- ?: (if else alternative)
+- generator function
+- switch case
+- tailflag
+- for loop closure part
+-------------------------------------------

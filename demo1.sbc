@@ -1,0 +1,53 @@
+funcLength 2
+callentry 0
+sendentry 0
+numberOfLocals 0
+numberOfInstruction 38
+getglobalobj 1
+setfl 30
+makeclosure 2 0
+string 3 "a"
+setglobal 3 2
+fixnum 2 1
+string 4 "c"
+setglobal 4 2
+string 11 "a"
+getglobal 5 11
+fixnum 7 1
+fixnum 6 2
+getidx 10 7
+move 30 7
+send 10 0
+setfl 30
+geta 8
+setprop 5 8 6
+string 16 "a"
+getglobal 12 16
+string 17 "bar"
+getglobal 2 17
+string 14 "foo"
+setprop 12 14 2
+string 24 "a"
+getglobal 18 24
+string 25 "b"
+getglobal 20 25
+string 26 "c"
+getglobal 19 26
+getidx 23 20
+move 30 20
+send 23 0
+setfl 30
+geta 21
+setprop 18 21 19
+seta 2
+ret
+callentry 0
+sendentry 1
+numberOfLocals 2
+numberOfInstruction 6
+getglobalobj 1
+newargs
+setfl 7
+specconst 3 undefined
+seta 3
+ret

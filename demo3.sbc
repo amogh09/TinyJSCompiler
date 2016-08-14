@@ -1,0 +1,112 @@
+funcLength 2
+callentry 0
+sendentry 0
+numberOfLocals 0
+numberOfInstruction 30
+getglobalobj 1
+setfl 20
+string 9 "Array"
+getglobal 7 9
+fixnum 8 1
+move 20 8
+new 2 7
+move 19 2
+newsend 7 1
+setfl 20
+string 3 "Object"
+getglobal 4 3
+geta 6
+instanceof 5 6 4
+jumpfalse 5 2
+geta 2
+string 10 "a"
+setglobal 10 2
+makeclosure 2 0
+string 11 "fib"
+setglobal 11 2
+string 14 "fib"
+getglobal 12 14
+fixnum 13 7
+move 20 13
+call 12 1
+setfl 20
+geta 2
+seta 2
+ret
+callentry 0
+sendentry 1
+numberOfLocals 2
+numberOfInstruction 73
+getglobalobj 1
+newargs
+setfl 59
+getarg 4 0 0
+fixnum 5 1
+lessthan 3 5 4
+jumpfalse 3 51
+string 13 "a"
+getglobal 7 13
+getarg 9 0 0
+string 19 "fib"
+getglobal 17 19
+getarg 20 0 0
+fixnum 21 1
+sub 18 20 21
+move 59 18
+call 17 1
+setfl 59
+geta 15
+string 25 "fib"
+getglobal 23 25
+getarg 26 0 0
+fixnum 27 2
+sub 24 26 27
+move 59 24
+call 23 1
+setfl 59
+geta 16
+add 8 15 16
+getidx 12 9
+move 59 9
+send 12 0
+setfl 59
+geta 10
+setprop 7 10 8
+string 34 "fib"
+getglobal 32 34
+getarg 35 0 0
+fixnum 36 1
+sub 33 35 36
+move 59 33
+call 32 1
+setfl 59
+geta 30
+string 40 "fib"
+getglobal 38 40
+getarg 41 0 0
+fixnum 42 2
+sub 39 41 42
+move 59 39
+call 38 1
+setfl 59
+geta 31
+add 29 30 31
+seta 29
+ret
+jump 14
+string 50 "a"
+getglobal 44 50
+getarg 46 0 0
+fixnum 45 1
+getidx 49 46
+move 59 46
+send 49 0
+setfl 59
+geta 47
+setprop 44 47 45
+fixnum 52 1
+seta 52
+ret
+specconst 53 undefined
+seta 53
+ret
