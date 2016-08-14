@@ -1279,9 +1279,9 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
 
         if(tailFlag){
           for(var i=0; i<root.arguments.length; i++){
-            setBytecodeBiReg(Nemonic.MOVE, 0, i+2, tmp[i+1]);
+            setBytecodeBiReg(Nemonic.MOVE, 0, i+2, t[i+1]);
           }
-          setBytecodeRegnum(Nemonic.TAILCALL, 0, tmp[0], root.arguments.length);
+          setBytecodeRegnum(Nemonic.TAILCALL, 0, t[0], root.arguments.length);
         } else {
           for(var i=1; i<t.length; i++){
             setBytecodeBiReg(Nemonic.MOVE, 2, i - root.arguments.length, t[i]);
