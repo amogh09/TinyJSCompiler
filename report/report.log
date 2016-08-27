@@ -1,4 +1,4 @@
-This is e-pTeX, Version 3.14159265-p3.6-141210-2.6 (utf8.euc) (TeX Live 2015/Debian) (preloaded format=platex 2016.8.27)  27 AUG 2016 18:43
+This is e-pTeX, Version 3.14159265-p3.6-141210-2.6 (utf8.euc) (TeX Live 2015/Debian) (preloaded format=platex 2016.8.27)  27 AUG 2016 20:47
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -54,25 +54,33 @@ Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 \Gm@layoutvoffset=\dimen126
 \Gm@dimlist=\toks16
 )
+(/usr/share/texlive/texmf-dist/tex/latex/float/float.sty
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count92
+\float@exts=\toks17
+\float@box=\box41
+\@float@everytoks=\toks18
+\@floatcapt=\box42
+)
 (/usr/share/texlive/texmf-dist/tex/latex/listings/listings.sty
-\lst@mode=\count92
-\lst@gtempboxa=\box41
-\lst@token=\toks17
-\lst@length=\count93
+\lst@mode=\count93
+\lst@gtempboxa=\box43
+\lst@token=\toks19
+\lst@length=\count94
 \lst@currlwidth=\dimen127
-\lst@column=\count94
-\lst@pos=\count95
+\lst@column=\count95
+\lst@pos=\count96
 \lst@lostspace=\dimen128
 \lst@width=\dimen129
-\lst@newlines=\count96
-\lst@lineno=\count97
+\lst@newlines=\count97
+\lst@lineno=\count98
 \lst@maxwidth=\dimen130
 
 (/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2015/06/04 1.6 (Carsten Heinz)
-\c@lstnumber=\count98
-\lst@skipnumbers=\count99
-\lst@framebox=\box42
+\c@lstnumber=\count99
+\lst@skipnumbers=\count100
+\lst@framebox=\box44
 )
 (/usr/share/texlive/texmf-dist/tex/latex/listings/listings.cfg
 File: listings.cfg 2015/06/04 1.6 listings configuration
@@ -112,22 +120,22 @@ Package tocbibind Note: Using section or other style headings.
 ) (./report.aux)
 \openout1 = `report.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
-LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 16.
-LaTeX Font Info:    ... okay on input line 16.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for JY1/mc/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
+LaTeX Font Info:    Checking defaults for JT1/mc/m/n on input line 19.
+LaTeX Font Info:    ... okay on input line 19.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: dvips
@@ -163,7 +171,7 @@ LaTeX Font Info:    ... okay on input line 16.
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
-\c@lstlisting=\count100
+\c@lstlisting=\count101
 (./title.tex
 
 LaTeX Font Warning: Font shape `JT1/mc/m/sc' undefined
@@ -185,9 +193,9 @@ LaTeX Font Warning: Font shape `JY1/mc/m/it' undefined
 
 ])
 LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <17.28> not available
-(Font)              Font shape `JT1/gt/m/n' tried instead on input line 20.
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 23.
 LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <17.28> not available
-(Font)              Font shape `JY1/gt/m/n' tried instead on input line 20.
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 23.
  (./report.toc
 LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <12> not available
 (Font)              Font shape `JT1/gt/m/n' tried instead on input line 1.
@@ -205,21 +213,29 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 
  [1]
 LaTeX Font Info:    Font shape `JT1/mc/bx/n' in size <14.4> not available
-(Font)              Font shape `JT1/gt/m/n' tried instead on input line 26.
+(Font)              Font shape `JT1/gt/m/n' tried instead on input line 29.
 LaTeX Font Info:    Font shape `JY1/mc/bx/n' in size <14.4> not available
-(Font)              Font shape `JY1/gt/m/n' tried instead on input line 26.
- [1] [2] (./report.aux)
+(Font)              Font shape `JY1/gt/m/n' tried instead on input line 29.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 42.
+ (/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
+File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 42.
+ [1]
+File: process.eps Graphic file (type eps)
+ <process.eps> [2] [3] [4] (./report.aux)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  ) 
 Here is how much of TeX's memory you used:
- 2374 strings out of 493723
- 33453 string characters out of 6152570
- 99269 words of memory out of 5000000
- 5929 multiletter control sequences out of 15000+600000
+ 2456 strings out of 493723
+ 34559 string characters out of 6152570
+ 102699 words of memory out of 5000000
+ 6002 multiletter control sequences out of 15000+600000
  15723 words of font info for 60 fonts, out of 8000000 for 9000
  929 hyphenation exceptions out of 8191
- 26i,4n,32p,484b,236s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 26i,4n,32p,484b,284s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on report.dvi (4 pages, 4544 bytes).
+Output written on report.dvi (6 pages, 11156 bytes).
