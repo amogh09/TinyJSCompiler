@@ -1,0 +1,51 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{placeins}
+\usepackage[nottoc]{tocbibind} %Adds "References" to the table of contents
+
+\lstset{
+	frame=tb,
+	showstringspaces=false,
+	columns=flexible,
+	breaklines=true,
+	breakatwhitespace=true
+}
+
+\begin{document}
+\pagenumbering{gobble}
+\input {title.tex}
+
+\tableofcontents
+
+\newpage
+\pagenumbering{arabic}
+
+\section{はじめに}
+\subsection{背景}
+TinyJavaScript は JavaScript の一部機能を制限んしたサブセットのことである\cite{jscompiler}。TinyJavaScriptの元のコンパイラは Mozilla の SpiderMonkey Parser API \cite{spidermonkey}を使用していた。しかし、SpiderMonkey Parser は絶えてしまって、TinyJavaScript のコンパイラの開発も続けられなくなった。だから、TinyJavaScript コンパイラを新しいパーサを使用して作りなおす必要が出てきた。このレポートは TinyJavaScript コンパイラを Node JS で作る実験について述べる。
+
+\subsection{実験の目的}
+\subsection{実装の方針}
+
+\section{コンパイラの設計}
+\subsection{設計の方針}
+
+\section{コンパイラの実装}
+
+\section{評価}
+
+\section{終わりに}
+
+\newpage
+\begin{thebibliography}{9}
+\bibitem{jscompiler}
+高田 祥. \textit{ARM 上で動作する JavaScript 処理系の実装}. 電気通信大学 電気通信学部
+情報工学科 ソフトウェア学講座. January, 2011.
+\bibitem{spidermonkey}
+SpiderMonkey 1.6 \newline
+http://www-archive.mozilla.org/js/spidermonkey/release-notes/
+\end{thebibliography}
+
+\end{document}
