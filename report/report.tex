@@ -1,12 +1,18 @@
 \documentclass[12pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{float}
+\usepackage[T1]{fontenc}
 \usepackage{listings}
 \usepackage{graphicx}
 \usepackage{placeins}
 \usepackage[nottoc]{tocbibind} %Adds "References" to the table of contents
 \usepackage{graphicx}
-\setlength\parindent{0pt}
+\usepackage{listings}
+
+\newlength\tindent
+\setlength{\tindent}{\parindent}
+\setlength{\parindent}{0pt}
+\renewcommand{\indent}{\hspace*{\tindent}}
 
 \lstset{
 	frame=tb,
@@ -47,6 +53,15 @@ TinyJavaScriptはJavaScriptの以下の機能をサポートしない \cite{jsco
 \item 名前付きの関数定義
 \end{itemize}
 
+\cite{jscompiler}よりTinyJavaScriptの文法規則が図\ref{grammarFig}通りである。
+\begin{figure}
+\centering
+\includegraphics[scale=0.41]{grammar.eps}
+\caption{TinyJavaScriptの文法規則}
+\label{grammarFig}
+\end{figure}
+\FloatBarrier
+
 \subsection{SSJSVM}
 SSJSVM は Server-side JavaScript Virtual Machine の略称である。すなわち、サーバで動くJavaScriptの仮想機械のことである。本実験では、TinyJavaScriptのソースコードをSSJSVMの命令列に変換するコンパイラを作る。
 
@@ -70,7 +85,97 @@ SSJSVM は Server-side JavaScript Virtual Machine の略称である。すなわ
 ANTLRを使用するとANTLR用の文法が必要となる。その文法はいろいろなソースがインターネットで提供してるが、オフィシャルではないので正しさは保証できない。あとドキュメントなども全然提供されてなくて、使いにくいと判断した。ところで、Esprimaはとてもアクチブなプロジェクトであって、投稿者が多い。だから、最後にEsprimaを使うと決める。
 
 \section{Esprima}
+\subsection{特徴}
 Esprima \cite{esprima}はJavaScriptで書かれてるECMAScriptのパーシングインフラストラクチャである。Esprimaの主な特徴は以下のとおりである\cite{esprima}。
+\subsection{例}
+Esprimaには「parse」メソッドがあって、そのメソッドにソースコードをストリングで渡すと抽象構文木がJSオブジェクトで返される。
+
+\begin{lstlisting}
+var a = 2;
+\end{lstlisting}
+\FloatBarrier
+
+上の変数宣言のコードの抽象構文木オブジェクトのJSONは以下のようである。
+
+\begin{lstlisting}
+	{
+	    "type": "Program",
+	    "body": [
+	        {
+	            "type": "VariableDeclaration",
+	            "declarations": [
+	                {
+	                    "type": "VariableDeclarator",
+	                    "id": {
+	                        "type": "Identifier",
+	                        "name": "a"
+	                    },
+	                    "init": {
+	                        "type": "Literal",
+	                        "value": 2,
+	                        "raw": "2"
+	                    }
+	                }
+	            ],
+	            "kind": "var"
+	        }
+	    ],
+	    "sourceType": "script"
+	}
+\end{lstlisting}
+\FloatBarrier
+
+\begin{lstlisting}
+var a = ["amogh", "rathore", 21];
+\end{lstlisting}
+\FloatBarrier
+
+配列なら以下のようになる。
+
+\begin{lstlisting}
+	{
+	    "type": "Program",
+	    "body": [
+	        {
+	            "type": "VariableDeclaration",
+	            "declarations": [
+	                {
+	                    "type": "VariableDeclarator",
+	                    "id": {
+	                        "type": "Identifier",
+	                        "name": "a"
+	                    },
+	                    "init": {
+	                        "type": "ArrayExpression",
+	                        "elements": [
+	                            {
+	                                "type": "Literal",
+	                                "value": "amogh",
+	                                "raw": "\"amogh\""
+	                            },
+	                            {
+	                                "type": "Literal",
+	                                "value": "rathore",
+	                                "raw": "\"rathore\""
+	                            },
+	                            {
+	                                "type": "Literal",
+	                                "value": 21,
+	                                "raw": "21"
+	                            }
+	                        ]
+	                    }
+	                }
+	            ],
+	            "kind": "var"
+	        }
+	    ],
+	    "sourceType": "script"
+	}
+\end{lstlisting}
+\FloatBarrier
+
+上からわかるように、各構文は「type」というプロパーティが付いている。そのプロパーティから構文の種類(BNFの非終端記号と一緒)がわかる。
 
 \begin{itemize}
 \item ECMAScript 6 (ECMA-262 \cite{ecmascript}) 全体をサポート
@@ -98,6 +203,206 @@ Esprima \cite{esprima}はJavaScriptで書かれてるECMAScriptのパーシン�
 本実験で使うEsprimaパーサは段階1と段階2の処理を行ってくれる。Esprimaは抽象構文木をJSオブジェクトにして返す。
 
 \section{コンパイラの実装}
+この説でコンパイラの実装を述べる。コンパイラは各構文に対して別の変換を行うので、各構文に対しての処理をこれから述べる。
+
+\subsection{Literalタイプ}
+EsprimaのLiteralタイプは数値、真偽値や undefined などの定数、文字列、正規表現を含んでいる。
+
+\subsubsection{数値}
+数値の命令列を生成するために、まずは整数かどうかを調べる。なぜなら、SSJSVMで整数と浮動小数点数に対して別の命令が存在するから。コンパイラはNodeJSで書くので、JSのNumber.isSafeInteger()メソッドを使って、整数かどうかを判断する。整数ならfixnum、整数でないならnumberという命令を使う。\\
+
+例：var a = 3; の'2'のところは以下のようになる
+\begin{lstlisting}
+...
+fixnum 2 2
+...
+\end{lstlisting}
+\FloatBarrier
+
+整数でない場合は、すなわち var a = 2.5; の場合
+\begin{lstlisting}
+...
+number 2 2.5
+...
+\end{lstlisting}
+\FloatBarrier
+
+のようになる。
+
+\subsubsection{真偽値や undefined などの定数}
+この場合は、SSJSVMの「specconst」という命令を使う。specconst命令は引数で定数を以下のように受け取る。\\
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+	\hline
+	定数 & SSJSVMで使う引数 \\
+	\hline
+	true & true \\
+	false & false \\
+	null & null \\
+	undefined & undefined \\
+	\hline
+\end{tabular}
+\end{table}
+
+例：var a = true; は以下のようになる\\
+
+\begin{lstlisting}
+...
+specconst 2 true
+...
+\end{lstlisting}
+
+\subsubsection{文字列}
+文字列の場合、SSJSVMの「string」命令を使う。
+
+例：var a = "amogh";\\
+
+\begin{lstlisting}
+...
+string 2 "amogh"
+...
+\end{lstlisting}
+
+\subsubsection{正規表現}
+この場合、SSJSVMの「regexp」命令を使う。JavaScriptの正規表現のフラッグを整数のビットに保持して渡す。
+
+例：var a = /d(b+)d/g; の場合\\
+
+\begin{lstlisting}
+...
+regexp 2 1 "d(b+)d"
+...
+\end{lstlisting}
+
+のようになる。ここで、2はレジスターで、1は正規表現のフラッグを表す。1の意味はフラッグgが立ててることを表す。
+
+\subsection{バイナリ式 (BinaryExpressionタイプ)}
+バイナリ式の場合、まずは演算子の左辺と右辺を評価して、２つのレジスタに保持する。次に、２つのレジスタの値をオペランドにして、演算子に対応する適当な命令を使う。演算子と命令は以下の通りである。
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+	\hline
+	演算子 & 命令 \\
+	\hline
+	< & lessthan \\
+	<= & lessthanequal \\
+	> & greaterthan \\
+	>= & greaterthanequal \\
+	== & JSなので複雑な手順を使わないといけないが、equal命令を使う \\
+	=== & eq \\
+	+ & add \\
+	- & sub \\
+	$\star$ & mul \\
+	/ & div \\
+	\% & mod \\
+	\& & bitand \\
+	| & bitor \\
+	< < & leftshift \\
+	> > & rightshift \\
+	> > > & unsignedrightshift \\
+	\hline
+\end{tabular}
+\end{table}
+\FloatBarrier
+
+例： 5 + 10; の場合以下のようになる\\
+
+\begin{lstlisting}
+...
+fixnum 3 1
+fixnum 4 2
+add 2 3 4
+...
+\end{lstlisting}
+\FloatBarrier
+
+\subsection{変数 (Identifierタイプ)}
+変数の環境をまず求める。それは、localかglobalかargのいずれかである。環境を求めたあと命令を以下のように決める。
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+	\hline
+	環境 & 命令 \\
+	\hline
+ 	local & getlocal \\
+	global & getglobal \\
+	arg & getarg \\
+	\hline
+\end{tabular}
+\end{table}
+
+\subsection{代入 (AssignmentExpressionタイプ)}
+まずは、左辺の種類を求める。すなわち、変数かプロパーティかを判断する。
+
+\subsubsection{変数の場合 (左辺はIdentifierタイプ)}
+まずは変数の環境を求める。次に、環境によって、以下のように命令を決める。
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+	\hline
+	環境 & 命令 \\
+	\hline
+ 	local & setlocal \\
+	global & setglobal \\
+	arg & setarg \\
+	\hline
+\end{tabular}
+\end{table}
+\FloatBarrier
+
+例：a = "some string"; の場合\\
+
+\begin{lstlisting}
+...
+string 2 "some string"
+string 5 "a"
+setglobal 5 2
+...
+\end{lstlisting}
+\FloatBarrier
+
+\subsubsection{プロパーティの場合 (左辺はMemberExpressionタイプ)}
+ここはまた２つ種類がある。左辺は . を使った代入と、左辺は [ ] を使った代入。\\
+
+. を使った代入だとまずは . の左辺の変数(Identifier)をコンパイルしてレジスタ t1 に保持する。その後、= の右辺の式をコンパイルしてレジスタ t2 に保持する。それから、. の右辺のプロパーティに対してstring命令を使ってそれをレジスタ t3 に保持する。最後に setprop t1 t2 t3 命令を使ってプロパーティに代入する。\\
+
+例：a.prop = 10; の場合は以下のようになる
+
+\begin{lstlisting}
+string 7 "a"
+getglobal 3 7
+fixnum 2 10
+string 5 "prop"
+setprop 3 5 2
+\end{lstlisting}
+\FloatBarrier
+\hfill \break
+[ ] を使った場合は、[ ]の左辺の変数をコンパイルしてレジスタt1に保持する。[ ]の中身をコンパイルしてレジスタt3に保持する。= の右辺をコンパイルしてレジスタt2に保持する。最後に、setprop t1 t2 t3 命令を使ってプロパーティに代入する。
+
+\subsection{ConditionalExpressionタイプ}
+e1?e2:e3 を考える。２つのラベルL1とL2を用意する。まずは、e1 をコンパイルして結果をレジスタ t に保持する。次に、t が false ならL1にジャンプする命令を生成する。その後はe2をコンパイルして、ラベルL2にジャンプする命令を生成する。それは、tがtrueならe3に行かないからである。それから、ラベルL1をつけて、e3をコンパイルする。最後にラベルL2をつける。
+
+例： a > b ? 3 : 5; の場合は以下のようになる。\\
+
+\begin{lstlisting}
+...
+string 6 "a"
+getglobal 4 6
+string 7 "b"
+getglobal 5 7
+lessthan 3 5 4
+jumpfalse 3 3
+fixnum 2 3
+jump 2
+fixnum 2 5
+...
+\end{lstlisting}
+
 
 \section{評価}
 

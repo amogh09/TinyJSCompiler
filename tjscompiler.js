@@ -1127,10 +1127,10 @@ var compileBytecode = function(root, rho, dst, tailFlag, currentLevel){
       compileBytecode(root.test, rho, t, 0, currentLevel);
       j1 = currentCodeNum;
       setBytecodeRegnum(Nemonic.JUMPFALSE, 1, t, label1);
-      l1 = currentCodeNum;
       compileBytecode(root.consequent, rho, dst, tailFlag, currentLevel);
       j2 = currentCodeNum;
       setBytecodeNum(Nemonic.JUMP, 1, label2);
+      l1 = currentCodeNum;
       compileBytecode(root.alternate, rho, dst, tailFlag, currentLevel);
       l2 = currentCodeNum;
       dispatchLabel(j1, l1);

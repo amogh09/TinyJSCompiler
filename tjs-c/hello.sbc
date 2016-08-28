@@ -1,0 +1,16 @@
+funcLength 1
+callentry 0
+sendentry 0
+numberOfLocals 0
+numberOfInstruction 11
+getglobalobj 1
+setfl 11
+string 5 "print"
+getglobal 3 5
+string 4 "hello world"
+move 11 4
+call 3 1
+setfl 11
+geta 2
+seta 2
+ret

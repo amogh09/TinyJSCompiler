@@ -6,26 +6,42 @@
 \citation{ecmascript}
 \citation{jscompiler}
 \citation{jscompiler}
+\citation{jscompiler}
 \@writefile{toc}{\contentsline {section}{\numberline {1}はじめに}{1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.1}背景}{1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.2}実験の目的}{1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {1.3}実装の方針}{1}}
 \@writefile{toc}{\contentsline {section}{\numberline {2}TinyJavaScript と SSJSVM}{1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}TinyJavaScript}{1}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces TinyJavaScriptの文法規則}}{2}}
+\newlabel{grammarFig}{{1}{2}}
 \citation{antlr}
 \citation{esprima}
 \citation{esprima}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}SSJSVM}{3}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}パーサの選び方}{3}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Esprima}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}特徴}{3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}例}{3}}
 \citation{ecmascript}
 \citation{esprimaTests}
 \citation{esprimaGitHub}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}SSJSVM}{2}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}パーサの選び方}{2}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Esprima}{2}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}コンパイラの設計}{2}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces コンパイルの３つの段階}}{3}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}コンパイラの実装}{3}}
-\@writefile{toc}{\contentsline {section}{\numberline {7}評価}{3}}
-\@writefile{toc}{\contentsline {section}{\numberline {8}終わりに}{3}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}コンパイラの設計}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces コンパイルの３つの段階}}{6}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}コンパイラの実装}{6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Literalタイプ}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.1}数値}{6}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.2}真偽値や undefined などの定数}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.3}文字列}{7}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.4}正規表現}{7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}バイナリ式 (BinaryExpressionタイプ)}{8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}変数 (Identifierタイプ)}{8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}代入 (AssignmentExpressionタイプ)}{8}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.1}変数の場合 (左辺はIdentifierタイプ)}{9}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.2}プロパーティの場合 (左辺はMemberExpressionタイプ)}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}ConditionalExpressionタイプ}{10}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}評価}{10}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}終わりに}{10}}
 \bibcite{jscompiler}{1}
 \bibcite{spidermonkey}{2}
 \bibcite{esprima}{3}
@@ -34,4 +50,4 @@
 \bibcite{ecmascript}{6}
 \bibcite{antlr}{7}
 \bibcite{estree}{8}
-\@writefile{toc}{\contentsline {section}{References}{4}}
+\@writefile{toc}{\contentsline {section}{References}{11}}
