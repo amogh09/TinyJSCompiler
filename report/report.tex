@@ -374,11 +374,13 @@ setglobal 5 2
 例：a.prop = 10; の場合は以下のようになる
 
 \begin{lstlisting}
+...
 string 7 "a"
 getglobal 3 7
 fixnum 2 10
 string 5 "prop"
 setprop 3 5 2
+...
 \end{lstlisting}
 \FloatBarrier
 \hfill \break
@@ -403,6 +405,189 @@ fixnum 2 5
 ...
 \end{lstlisting}
 
+\subsection{if else 文 (IfStatementタイプ)}
+これもConditionalExpressionと同様である。
+
+\subsection{while文 (WhileStatementタイプ)}
+while文をコンパイルするために、まずはラベルL1へジャンプする命令を生成する。次に、ラベルL2をつけて、while文の身体をコンパイルする。それから、ラベルL1をつけて、while文のテストをコンパイルして、テストの結果をレジスタtに保持する。最後に、tがtrueなら、L2へジャンプする命令を生成する。そうすると、先にテストが実行されて、結果がtrue場合、中身が実行されてまたテストが実行されるようになる。
+
+例： while(a > b) b = b+1;\\
+
+\begin{lstlisting}
+...
+jump 7
+string 8 "b"
+getglobal 6 8
+fixnum 7 1
+add 2 6 7
+string 9 "b"
+setglobal 9 2
+string 12 "a"
+getglobal 10 12
+string 13 "b"
+getglobal 11 13
+lessthan 3 11 10
+jumptrue 3 -11
+...
+\end{lstlisting}
+
+\subsection{do while (DoWhileStatementタイプ)}
+これはwhile文と同様な実装である。まずはラベルL1をつけて、中身をコンパイルする。次に、テストをコンパイルして、結果がtrueならL1へジャンプする。
+
+例：do b = b+1; while(a > b)\\
+
+\begin{lstlisting}
+...
+string 8 "b"
+getglobal 6 8
+fixnum 7 1
+add 2 6 7
+string 9 "b"
+setglobal 9 2
+string 12 "a"
+getglobal 10 12
+string 13 "b"
+getglobal 11 13
+lessthan 3 11 10
+jumptrue 3 -11
+...
+\end{lstlisting}
+
+\subsection{for文 (ForStatementタイプ)}
+for文を実装するために、まずはfor文の初期化の部分をコンパイルする。次に、ラベルL1へジャンプする命令を生成する。その後、ラベルL2をつけて、for文の中身をコンパイルして、for文のアップデート文をコンパイルする。それから、ラベルL1をつけて、テストの部分をコンパイルする。最後に、テストの結果がtrueならば、ラベルL2へジャンプする。そうすると、for文の初期化の部分が先に一回実行されて、次にテストが実行される。テストの結果がtrueなら、中身とアップデートが順に実行される。それからまたテストが実行されるようになる。
+
+例：for(var i=0; i<10; i=i+1) b = b+1;\\
+
+\begin{lstlisting}
+...
+fixnum 3 0
+string 4 "i"
+setglobal 4 3
+jump 13
+string 9 "b"
+getglobal 7 9
+fixnum 8 1
+add 2 7 8
+string 10 "b"
+setglobal 10 2
+string 15 "i"
+getglobal 13 15
+fixnum 14 1
+add 3 13 14
+string 16 "i"
+setglobal 16 3
+string 19 "i"
+getglobal 17 19
+fixnum 18 10
+lessthan 3 17 18
+jumptrue 3 -16
+...
+\end{lstlisting}
+
+\subsection{リターン文 (ReturnStatementタイプ)}
+リターンされた値をTinyJavaScriptで「a」というレジスターに保持するべきである。だから、リターン文の身体をコンパイルして、結果をあるレジスターtに保持する。それから命令setaを使ってtの値をaにセットする。最後に、SSJSVMのret命令を使ってリターン文のコンパイルを完了する。
+
+例：var fun = function(){	return 10; }\\
+
+\begin{lstlisting}
+...
+fixnum 3 10
+seta 3
+ret
+...
+\end{lstlisting}
+
+\subsection{レシーバのある関数呼び出し (calleeプロパーティのタイプがMemberExpressionタイプであるCallExpressionタイプ)}
+メソッドの呼び出しを実装するために、まずはレシーバをコンパイルする。Esprimaでそれはcallee.objectプロパーティに入ってる。それから、レシーバのメソッドをstring命令とgetprop命令を使ってフェッチする。それから、引数をそれぞれコンパイルして結果をレジスーt1~tnに保持する。それから、move命令を使って引数の結果をすべてスタックフレームにロードする。テールフラッグが立ててれば、tailsend命令を使う。立ててなければ、レジスターウインドウの大きさを計算してsetflコマンドを使って新しいフレームリンクを作る。最後に、結果をリターンするためにレジスターaに保持する。
+
+例(tailflagが付いていない): a.x(x1, x2); \\
+
+\begin{lstlisting}
+...
+setfl 17
+string 8 "a"
+getglobal 5 8
+string 4 "x"
+getprop 3 5 4
+string 9 "x1"
+getglobal 6 9
+string 10 "x2"
+getglobal 7 10
+move 15 5
+move 16 6
+move 17 7
+send 3 2
+setfl 17
+geta 2
+seta 2
+ret
+...
+\end{lstlisting}
+
+\subsection{レシーバのない関数呼び出し (calleeプロパーティのタイプがMemberExpressionタイプでないCallExpressionタイプ)}
+まずは関数名をコンパイルする。そのあと、すべての引数を順にコンパイルする。それから、すべての引数をコンパイルした結果をスタックフレームにロードする。テールフラッグが立てれば、tailsend命令を使う。立ててなければ、レジスターウインドウの大きさを計算してsetflコマンドを使って新しいフレームリンクを作る。最後に、結果をリターンするためにレジスターaに保持する。
+
+\subsection{単項式 (UnaryExpressionタイプ)}
+命令を以下のように決める。
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+	\hline
+	オペレタ & オペランド \\
+	\hline
+	! & not \\
+	- & mul で -1と掛け算する \\
+	typeof & typeof \\
+	void & specconstに引数undefinedを渡す \\
+	\hline
+\end{tabular}
+\end{table}
+\FloatBarrier
+
+\subsection{論理式 (LogicalExpressionタイプ)}
+\&\&の場合\\
+左辺をコンパイルする。それで、結果がfalseならラベルL1へジャンプする命令を生成する。それから、右辺をコンパイルして、結果を左辺の結果を持ってるレジスターに保持する。最後にラベルL1をつける。\\
+
+||の場合\\
+左辺をコンパイルする。それで、結果がtrueならラベルL1へジャンプする命令を生成する。それから、右辺をコンパイルして、結果を左辺の結果を持ってるレジスターに保持する。最後にラベルL1をつける。\\
+
+\subsection{プロパーティアクセス (MemberExpressionタイプ)}
+\subsubsection{.を用いたプロパーティアクセウ (オブジェクトのcomputedプロパーティがfalse)}
+まずはオブジェクトをコンパイルする。次に、プロパーティをstring命令を使って登録して、getprop命令でプロパーティの値をフェッチする。
+
+\subsubsection{[ ]を用いたプロパーティアクセウ (オブジェクトのcomputedプロパーティがtrue)}
+まずはオブジェクトをコンパイルする。次に、[ ]の中身をコンパイルして結果をあるレジスターに保持する。最後にそのレジスターをgetprop命令に渡してプロパーティをフェッチする。
+
+\subsection{new演算子 (NewExpressionタイプ)}
+まずはnewのあとに書かれてる記号(callee)をコンパイルする。次に、calleeに渡された引数をそれぞれコンパイルする。そのあと、すべての引数をmove命令を使ってレジスターウインドウにロードする。次に、new命令を使ってオブジェクトを作成してあるレジスターd(destination レジスター)に保持する。それで、dをレジスターウインドウの一番上のところ($FL-n$ ここで$n$は引数の数)にロードする。それから、send命令でcalleeを持ってるレジスターと引数の数を渡してオブジェクトを登録する。
+それでsetflで新しいフレームリンクを設定して、新しいレジスター$t_s$に「Object」文字列を保持する。
+そのあと、getglobal命令object名前のグローバル変数の値を$t_g$レジスターに保持する。次に、Aレジスターに保持されてるインスタンスはgetglobalで修得されたクラスのobjectであるかどうかをinstanceof命令で判断する。インスタンスでなければ、ラベルLへジャンプする命令を生成して、レジスターAの値をレジスターdにmoveする。
+
+例：var a = new obj(x1, x2);の場合は\\
+
+\begin{lstlisting}
+...
+string 10 "obj"
+getglobal 7 10
+string 11 "x1"
+getglobal 8 11
+string 12 "x2"
+getglobal 9 12
+move 19 8
+move 20 9
+new 2 7
+move 18 2
+newsend 7 2
+setfl 20
+string 3 "Object"
+getglobal 4 3
+geta 6
+instanceof 5 6 4
+jumpfalse 5 2
+geta 2
+...
+\end{lstlisting}
 
 \section{評価}
 
