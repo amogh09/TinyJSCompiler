@@ -36,5 +36,6 @@
 \contentsline {subsubsection}{\numberline {6.15.2}[ ]を用いたプロパーティアクセウ (オブジェクトのcomputedプロパーティがtrue)}{14}
 \contentsline {subsection}{\numberline {6.16}new演算子 (NewExpressionタイプ)}{14}
 \contentsline {section}{\numberline {7}評価}{15}
-\contentsline {section}{\numberline {8}終わりに}{15}
-\contentsline {section}{References}{16}
+\contentsline {subsection}{\numberline {7.1}コンパイル時間の比較}{15}
+\contentsline {section}{\numberline {8}感想}{16}
+\contentsline {section}{References}{17}

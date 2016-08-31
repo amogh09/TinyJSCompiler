@@ -590,8 +590,21 @@ geta 2
 \end{lstlisting}
 
 \section{評価}
+\subsection{コンパイル時間の比較}
+C言語で書かれてるSpiderMonkey 1.6を利用した古いTinyJavaScriptコンパイラとこの実験のNode JSで書かれたEsprimaを利用したコンパイラのコンパイル時間を比較する。結果は図\ref{graph}のようになる。\\
 
-\section{終わりに}
+\begin{figure}
+\centering
+\includegraphics[scale=0.75]{graph.eps}
+\caption{コンパイル時間の比較}
+\label{graph}
+\end{figure}
+
+グラフでは赤色はNodeJSで書かれたコンパイラで、緑はC言語で書かれたコンパイラである。NodeJSで書かれたコンパイラはコンパイル時間が比較的に長いである。それの理由はNodeJSとC言語の速さの差であることが考えられる。新しいコンパイラの方はコンパイル時間の6割ぐらいがEsprimaの構文解析のところで書かれいて、残り4割は命令列生成の処理でかかる時間である。
+\FloatBarrier
+
+\section{感想}
+実験でコンパイラについていろいろ学習した。特に仮想機械へコンパイルするコンパイラの作り方、働き方について理解した。SSJSVMの命令セットについて理解できたし、古いコンパイラでバグも見つかれたので、TinyJavaScriptプロジェクトにとっても良かったと思う。パーサの探しの段階で、ANTLRについて学習できたし、実はANTLRを使って英語を使う計算機も友達と一緒に開発した。そして、Esprimaについて理解できて、将来Esprimaを使って何かJavaScriptプログラムを書きやすくするパッケージを書こうと思ってます。
 
 \newpage
 \begin{thebibliography}{9}
